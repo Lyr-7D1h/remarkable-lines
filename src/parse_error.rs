@@ -24,6 +24,10 @@ impl ParseError {
     pub fn invalid<S: Into<String>>(message: S) -> ParseError {
         Self::new(message, ParseErrorKind::InvalidInput)
     }
+
+    pub fn unsupported<S: Into<String>>(message: S) -> ParseError {
+        Self::new(message, ParseErrorKind::Unsupported)
+    }
 }
 
 impl error::Error for ParseError {}
