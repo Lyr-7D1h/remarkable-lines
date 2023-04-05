@@ -4,6 +4,7 @@ use layer::Layer;
 use line::Line;
 use page::Page;
 
+pub mod bitreader;
 pub mod color;
 pub mod layer;
 pub mod line;
@@ -13,6 +14,7 @@ pub mod point;
 pub mod tool;
 
 pub use crate::parse_error::ParseErrorKind;
+pub use bitreader::Bitreader;
 pub use color::Color;
 pub use parse_error::ParseError;
 pub use point::Point;
@@ -24,27 +26,33 @@ pub struct RemarkableFile {
     pub pages: Vec<Page>,
 }
 
-fn read_f32(input: &mut impl Read) -> Result<f32, ParseError> {
-    let mut buffer = [0; 4];
-    input.read_exact(&mut buffer)?;
-    return Ok(f32::from_le_bytes(buffer));
-}
-
-fn read_u32(input: &mut impl Read) -> Result<u32, ParseError> {
-    let mut buffer = [0; 4];
-    input.read_exact(&mut buffer)?;
-    return Ok(u32::from_le_bytes(buffer));
+pub trait Parse {
+    fn parse<N: Read>(reader: Bitreader<N>) -> Result<Self, ParseError>
+    where
+        Self: Sized;
 }
 
 impl RemarkableFile {
+    pub fn read(input: impl Read) -> Result<RemarkableFile, ParseError> {
+        RemarkableFile::parse(Bitreader::new(input))
+    }
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    pub fn pages(self) -> Vec<Page> {
+        self.pages
+    }
+}
+
+impl Parse for RemarkableFile {
     /// Parse a remarkable file in little endian order
-    pub fn read(mut input: impl Read) -> Result<RemarkableFile, ParseError> {
-        let mut file_description = [0; 43];
-        input.read_exact(&mut file_description)?;
-        let version_description = file_description
+    fn parse<N: Read>(mut reader: Bitreader<N>) -> Result<Self, ParseError> {
+        let version_description = reader
+            .read_bytes(43)?
             .into_iter()
             .map(|i| i as char)
             .collect::<String>();
+
         let version_description = version_description.trim_end();
 
         let version: u32 = {
@@ -71,63 +79,48 @@ impl RemarkableFile {
             }
         };
 
-        if version != 5 {
+        if 3 > version || version > 6 {
             return Err(ParseError::new(
                 &format!("version '{version}' is not supported"),
                 ParseErrorKind::Unsupported,
             ));
         }
 
-        let amount_pages = if version >= 3 {
-            1
-        } else {
-            read_u32(&mut input)?
-        };
+        let amount_pages = if version >= 3 { 1 } else { reader.read_u32()? };
 
         let pages = (0..amount_pages)
             .map(|_| {
-                let amount_layers = read_u32(&mut input)?;
+                let amount_layers = reader.read_u32()?;
                 let layers = (0..amount_layers)
                     .map(|_| {
-                        let amount_lines = read_u32(&mut input)?;
+                        let amount_lines = reader.read_u32()?;
                         let lines = (0..amount_lines)
                             .map(|_| {
-                                let tool = Tool::try_from(read_u32(&mut input)?)?;
-                                let color = Color::try_from(read_u32(&mut input)?)?;
-                                read_u32(&mut input)?; // Skip unknown value
-                                let brush_size = read_f32(&mut input)?;
+                                let tool = Tool::try_from(reader.read_u32()?)?;
+                                let color = Color::try_from(reader.read_u32()?)?;
+                                reader.read_u32()?; // Skip unknown value
+                                let brush_size = reader.read_f32()?;
                                 if version >= 5 {
-                                    read_u32(&mut input)? // Skip unkown value
-                                } else {
-                                    0
-                                };
-                                let amount_points = read_u32(&mut input)?;
-                                let points = (0..amount_points)
-                                    .map(|_| {
-                                        // TODO try moving in struct
-                                        let x = read_f32(&mut input)?;
-                                        let y = read_f32(&mut input)?;
-                                        let speed = read_f32(&mut input)?;
-                                        let direction = read_f32(&mut input)?;
-                                        let width = read_f32(&mut input)?;
-                                        let pressure = read_f32(&mut input)?;
-
-                                        Ok(Point {
-                                            x,
-                                            y,
-                                            speed,
-                                            direction,
-                                            width,
-                                            pressure,
-                                        })
-                                    })
-                                    .collect::<Result<Vec<Point>, ParseError>>()?;
+                                    reader.read_u32()?; // Skip unkown value
+                                }
+                                let amount_points = reader.read_u32()?;
 
                                 Ok(Line {
                                     tool,
                                     color,
                                     brush_size,
-                                    points,
+                                    points: (0..amount_points)
+                                        .map(|_| {
+                                            Ok(Point {
+                                                x: reader.read_f32()?,
+                                                y: reader.read_f32()?,
+                                                speed: reader.read_f32()?,
+                                                direction: reader.read_f32()?,
+                                                width: reader.read_f32()?,
+                                                pressure: reader.read_f32()?,
+                                            })
+                                        })
+                                        .collect::<Result<Vec<Point>, ParseError>>()?,
                                 })
                             })
                             .collect::<Result<Vec<Line>, ParseError>>()?;
@@ -140,12 +133,5 @@ impl RemarkableFile {
             .collect::<Result<Vec<Page>, ParseError>>()?;
 
         return Ok(RemarkableFile { version, pages });
-    }
-
-    pub fn version(&self) -> u32 {
-        self.version
-    }
-    pub fn pages(self) -> Vec<Page> {
-        self.pages
     }
 }
