@@ -20,8 +20,8 @@ pub use tool::Tool;
 
 #[derive(Debug)]
 pub struct RemarkableFile {
-    version: u8,
-    pages: Vec<Page>,
+    pub version: u32,
+    pub pages: Vec<Page>,
 }
 
 fn read_f32(input: &mut impl Read) -> Result<f32, ParseError> {
@@ -41,19 +41,33 @@ impl RemarkableFile {
     pub fn read(mut input: impl Read) -> Result<RemarkableFile, ParseError> {
         let mut file_description = [0; 43];
         input.read_exact(&mut file_description)?;
-        let version_description: String = file_description.into_iter().map(|i| i as char).collect();
+        let version_description = file_description
+            .into_iter()
+            .map(|i| i as char)
+            .collect::<String>();
+        let version_description = version_description.trim_end();
 
-        let version = match version_description.trim_end() {
-            "reMarkable lines with selections and layers" => {
+        let version: u32 = {
+            if version_description == "reMarkable lines with selections and layers" {
                 // early version of the format that is not supported
                 return Err(ParseError::unsupported("Unsupported outdated version"));
-            }
-            "reMarkable .lines file, version=3" => 3,
-            "reMarkable .lines file, version=5" => 5,
-            _ => {
+            } else if version_description.starts_with("reMarkable .lines file, version=") {
+                match version_description.split("=").nth(1) {
+                    Some(v) => v.parse().map_err(|_| {
+                        ParseError::unsupported(format!(
+                            "Could not find version from: {version_description}"
+                        ))
+                    })?,
+                    None => {
+                        return Err(ParseError::unsupported(format!(
+                            "Unknown version from: {version_description}"
+                        )))
+                    }
+                }
+            } else {
                 return Err(ParseError::unsupported(format!(
                     "Unknown version from: {version_description}"
-                )))
+                )));
             }
         };
 
@@ -80,16 +94,14 @@ impl RemarkableFile {
                             .map(|_| {
                                 let tool = Tool::try_from(read_u32(&mut input)?)?;
                                 let color = Color::try_from(read_u32(&mut input)?)?;
-                                let unknown_line_attribute = read_u32(&mut input)?;
-                                let padding = read_u32(&mut input)?;
+                                read_u32(&mut input)?; // Skip unknown value
                                 let brush_size = read_f32(&mut input)?;
-                                let unknown_line_attribute_2 = if version >= 5 {
-                                    read_u32(&mut input)?
+                                if version >= 5 {
+                                    read_u32(&mut input)? // Skip unkown value
                                 } else {
                                     0
                                 };
                                 let amount_points = read_u32(&mut input)?;
-                                println!("{amount_points}");
                                 let points = (0..amount_points)
                                     .map(|_| {
                                         // TODO try moving in struct
@@ -112,11 +124,8 @@ impl RemarkableFile {
                                     .collect::<Result<Vec<Point>, ParseError>>()?;
 
                                 Ok(Line {
-                                    unknown_line_attribute,
-                                    unknown_line_attribute_2,
                                     tool,
                                     color,
-                                    padding,
                                     brush_size,
                                     points,
                                 })
@@ -133,7 +142,10 @@ impl RemarkableFile {
         return Ok(RemarkableFile { version, pages });
     }
 
-    pub fn version(&self) -> u8 {
+    pub fn version(&self) -> u32 {
         self.version
+    }
+    pub fn pages(self) -> Vec<Page> {
+        self.pages
     }
 }

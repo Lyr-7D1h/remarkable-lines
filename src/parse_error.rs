@@ -44,7 +44,7 @@ impl From<io::Error> for ParseError {
 impl From<num::ParseIntError> for ParseError {
     fn from(error: num::ParseIntError) -> Self {
         Self::new(
-            format!("Failed to pares integer: {error}"),
+            format!("Failed to parse integer: {error}"),
             ParseErrorKind::InvalidInput,
         )
     }
