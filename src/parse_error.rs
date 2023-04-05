@@ -1,4 +1,4 @@
-use std::{error, fmt, io, num};
+use std::{error, fmt, i32, io, num, string, u32};
 
 #[derive(Debug)]
 pub enum ParseErrorKind {
@@ -47,5 +47,16 @@ impl From<num::ParseIntError> for ParseError {
             format!("Failed to parse integer: {error}"),
             ParseErrorKind::InvalidInput,
         )
+    }
+}
+impl From<num::TryFromIntError> for ParseError {
+    fn from(error: num::TryFromIntError) -> Self {
+        Self::new(format!("Failed to read input: {error}"), ParseErrorKind::InvalidInput)
+    }
+}
+
+impl From<string::FromUtf8Error> for ParseError {
+    fn from(value: string::FromUtf8Error) -> Self {
+        Self::invalid(format!("Invalid utf-8 string found: '{value}'"))
     }
 }
