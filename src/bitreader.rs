@@ -28,4 +28,10 @@ impl<N: Read> Bitreader<N> {
         self.bits.read_exact(&mut buffer)?;
         return Ok(u32::from_le_bytes(buffer));
     }
+
+    pub fn read_u8(&mut self) -> Result<u8, ParseError> {
+        let mut buffer = [0];
+        self.bits.read_exact(&mut buffer)?;
+        return Ok(u8::from_le_bytes(buffer));
+    }
 }

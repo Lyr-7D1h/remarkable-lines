@@ -1,3 +1,5 @@
+use crate::Parse;
+
 #[derive(Debug)]
 pub struct Point {
     pub x: f32,
@@ -6,4 +8,20 @@ pub struct Point {
     pub direction: f32,
     pub width: f32,
     pub pressure: f32,
+}
+
+impl Parse for Point {
+    fn parse<N: std::io::Read>(
+        _version: u32,
+        reader: &mut crate::Bitreader<N>,
+    ) -> Result<Self, crate::ParseError> {
+        Ok(Point {
+            x: reader.read_f32()?,
+            y: reader.read_f32()?,
+            speed: reader.read_f32()?,
+            direction: reader.read_f32()?,
+            width: reader.read_f32()?,
+            pressure: reader.read_f32()?,
+        })
+    }
 }
