@@ -43,6 +43,7 @@ impl Parse for Block {
     ) -> Result<Self, ParseError> {
         println!("Starting new block at offset {:x}", reader.offset());
         let start_offset = reader.offset();
+
         let size = reader.read_u32()?;
         let _ = reader.read_u8()?;
         let min_version = reader.read_u8()?;
