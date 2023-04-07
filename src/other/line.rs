@@ -1,4 +1,9 @@
-use crate::{Color, Parse, ParseError, Point, Tool};
+use crate::Parse;
+use crate::ParseError;
+
+use super::color::Color;
+use super::point::Point;
+use super::tool::Tool;
 
 #[derive(Debug)]
 pub struct Line {

@@ -1,24 +1,16 @@
 use std::io::Read;
 
-use page::Page;
+use other::page::Page;
 use v6::SceneTree;
 
 pub mod bitreader;
-pub mod color;
-pub mod layer;
-pub mod line;
-pub mod page;
+pub mod other;
 pub mod parse_error;
-pub mod point;
-pub mod tool;
 pub mod v6;
 
 pub use crate::parse_error::ParseErrorKind;
 pub use bitreader::Bitreader;
-pub use color::Color;
 pub use parse_error::ParseError;
-pub use point::Point;
-pub use tool::Tool;
 
 pub enum RemarkableFile {
     V6 { tree: SceneTree },

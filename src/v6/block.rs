@@ -3,11 +3,11 @@ use std::io::Read;
 use crate::{Parse, ParseError};
 
 mod blocks;
+mod tag;
 use blocks::*;
 
 #[derive(Debug)]
 pub struct BlockInfo {
-    // offset: u32,
     size: u32,
     min_version: u8,
     current_version: u8,

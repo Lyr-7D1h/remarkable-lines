@@ -19,10 +19,9 @@ impl BlockParse for MigrationInfoBlock {
 pub struct AuthorsIdsBlock {
     authors: HashMap<u16, String>,
 }
-
 impl BlockParse for AuthorsIdsBlock {
     fn parse<N: Read>(
-        info: BlockInfo,
+        _info: BlockInfo,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
         let amount_subblocks = reader.read_varunit()?;

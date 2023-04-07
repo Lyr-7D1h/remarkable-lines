@@ -1,4 +1,6 @@
-use crate::{line::Line, Color, Parse, ParseError, Point, Tool};
+use crate::{Parse, ParseError};
+
+use super::line::Line;
 
 #[derive(Debug)]
 pub struct Layer {

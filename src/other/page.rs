@@ -1,4 +1,6 @@
-use crate::{layer::Layer, Parse, ParseError};
+use crate::{Parse, ParseError};
+
+use super::layer::Layer;
 
 #[derive(Debug)]
 pub struct Page {
