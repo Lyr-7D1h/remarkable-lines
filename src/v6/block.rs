@@ -29,7 +29,7 @@ pub enum Block {
 
 pub trait BlockParse {
     fn parse<N: Read>(
-        info: BlockInfo,
+        info: &BlockInfo,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError>
     where
@@ -57,16 +57,16 @@ impl Parse for Block {
         };
 
         let block = match block_type {
-            0x00 => Block::MigrationInfo(MigrationInfoBlock::parse(info, reader)?),
-            0x01 => Block::SceneTree(SceneTreeBlock::parse(info, reader)?),
-            0x02 => Block::TreeNode(TreeNodeBlock::parse(info, reader)?),
+            0x00 => Block::MigrationInfo(MigrationInfoBlock::parse(&info, reader)?),
+            0x01 => Block::SceneTree(SceneTreeBlock::parse(&info, reader)?),
+            0x02 => Block::TreeNode(TreeNodeBlock::parse(&info, reader)?),
             0x03 => Block::SceneGlyphItem,
             0x04 => Block::SceneGroupItem,
             0x05 => Block::SceneLineItem,
             0x06 => Block::SceneTextItem,
             0x07 => Block::RootText,
-            0x09 => Block::AuthorsIds(AuthorsIdsBlock::parse(info, reader)?),
-            0x0A => Block::PageInfo(PageInfoBlock::parse(info, reader)?),
+            0x09 => Block::AuthorsIds(AuthorsIdsBlock::parse(&info, reader)?),
+            0x0A => Block::PageInfo(PageInfoBlock::parse(&info, reader)?),
             _ => {
                 return Err(ParseError::invalid(format!(
                     "Unknown block type: '{block_type}'"

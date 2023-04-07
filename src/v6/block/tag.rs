@@ -1,7 +1,9 @@
 use crate::ParseError;
 
+use super::BlockInfo;
 use super::BlockParse;
 
+#[derive(Debug)]
 pub enum TagType {
     ID,
     Length4,
@@ -27,14 +29,15 @@ impl TryFrom<u32> for TagType {
     }
 }
 
+#[derive(Debug)]
 pub struct Tag {
-    index: u32,
-    tag_type: TagType,
+    pub index: u32,
+    pub tag_type: TagType,
 }
 
 impl BlockParse for Tag {
     fn parse<N: std::io::Read>(
-        info: super::BlockInfo,
+        _info: &BlockInfo,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
         let x = reader.read_varunit()?;
