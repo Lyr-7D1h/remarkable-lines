@@ -30,15 +30,18 @@ impl<N: Read> Bitreader<N> {
         return Ok(buffer);
     }
 
-    pub fn read_varunit(&mut self) -> Result<u32, ParseError> {
-        // FIXME implement correctly https://docs.rs/varuint/latest/varuint/
+    // https://en.wikipedia.org/wiki/Variable-length_quantity
+    pub fn read_varuint(&mut self) -> Result<u32, ParseError> {
         let mut shift = 0;
         let mut result: u32 = 0;
-        let mut i = self.read_bytes(1)?[0];
-        while i & 0x80 == 0x80 {
+        let mut i;
+        loop {
+            i = self.read_bytes(1)?[0];
             result |= ((i & 0x7F) as u32) << shift;
             shift += 7;
-            i = self.read_bytes(1)?[0];
+            if i & 0x80 != 0x80 {
+                break;
+            }
         }
         return Ok(result);
     }

@@ -3,7 +3,7 @@ use crate::ParseError;
 use super::BlockInfo;
 use super::BlockParse;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TagType {
     ID,
     Length4,
@@ -40,7 +40,7 @@ impl BlockParse for Tag {
         _info: &BlockInfo,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
-        let x = reader.read_varunit()?;
+        let x = reader.read_varuint()?;
         Ok(Tag {
             index: x >> 4,
             tag_type: TagType::try_from(x & 0xF)?,

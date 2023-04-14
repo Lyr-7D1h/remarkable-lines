@@ -27,13 +27,12 @@ impl BlockParse for AuthorsIdsBlock {
         info: &BlockInfo,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
-        let amount_subblocks = reader.read_varunit()?;
+        let amount_subblocks = reader.read_varuint()?;
         let mut authors = HashMap::new();
 
-        println!("A {amount_subblocks}");
         for _ in 0..amount_subblocks {
             let tag = Tag::parse(&info, reader)?;
-            if let TagType::Length4 = tag.tag_type {
+            if tag.tag_type != TagType::Length4 {
                 return Err(ParseError::invalid(format!(
                     "Invalid tag type received {:?} expected {:?}",
                     tag.tag_type,
@@ -41,7 +40,7 @@ impl BlockParse for AuthorsIdsBlock {
                 )));
             }
             let subblock_length = reader.read_u32()?;
-            let uuid_length = reader.read_varunit()?;
+            let uuid_length = reader.read_varuint()?;
             if uuid_length != 16 {
                 return Err(ParseError::invalid("Expected UUID length to be 16 bytes"));
             }
@@ -49,6 +48,7 @@ impl BlockParse for AuthorsIdsBlock {
             let author_id = reader.read_u16()?;
             authors.insert(author_id, uuid);
         }
+        println!("{authors:?}");
 
         Ok(Self { authors })
     }
