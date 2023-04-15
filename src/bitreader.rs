@@ -5,21 +5,56 @@ use crate::ParseError;
 /// A little endian binary reader
 pub struct Bitreader<N: Read> {
     bits: N,
+    // inner buffer is used to temporarly store thinks in order to support look ahead
+    inner_buffer: Vec<u8>,
     offset: usize,
 }
 
 impl<N: Read> Bitreader<N> {
     pub fn new(bits: N) -> Bitreader<N> {
-        Bitreader { bits, offset: 0 }
+        Bitreader {
+            bits,
+            offset: 0,
+            inner_buffer: vec![],
+        }
     }
 
     pub fn offset(&self) -> usize {
         self.offset
     }
 
-    // Read bytes and update the offset
+    // Read bytes first from inner buffer than from bits, will also update the offset
     fn read_exact(&mut self, buffer: &mut [u8]) -> Result<(), ParseError> {
         self.offset += buffer.len();
+
+        if self.inner_buffer.len() > 0 {
+            // if there is enough in inner_buffer fill up buffer
+            if self.inner_buffer.len() > buffer.len() {
+                self.inner_buffer
+                    .drain(0..buffer.len())
+                    .enumerate()
+                    .for_each(|(i, b)| buffer[i] = b);
+                return Ok(());
+            }
+
+            // remove all values from inner_buffer
+            let mut inner_buffer = self
+                .inner_buffer
+                .drain(0..self.inner_buffer.len())
+                .collect::<Vec<u8>>();
+
+            // read the last few bytes and append to removed inner buffer values
+            inner_buffer.append(&mut self.read_bytes(buffer.len() - self.inner_buffer.len())?);
+
+            // fill buffer
+            inner_buffer
+                .into_iter()
+                .enumerate()
+                .for_each(|(i, b)| buffer[i] = b);
+
+            return Ok(());
+        }
+
         self.bits.read_exact(buffer)?;
         return Ok(());
     }
