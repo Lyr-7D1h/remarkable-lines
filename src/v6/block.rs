@@ -1,16 +1,24 @@
 use std::io::Read;
 
-use crate::{Parse, ParseError};
+use crate::{Bitreader, Parse, ParseError};
 
 mod blocks;
+mod crdtid;
 mod tag;
 use blocks::*;
 
 #[derive(Debug)]
 pub struct BlockInfo {
+    start_offset: usize,
     size: u32,
     min_version: u8,
     current_version: u8,
+}
+
+impl BlockInfo {
+    pub fn has_bytes_remaining(&self, reader: &Bitreader<impl Read>) -> bool {
+        self.start_offset + self.size as usize > reader.offset()
+    }
 }
 
 #[derive(Debug)]
@@ -27,6 +35,13 @@ pub enum Block {
     RootText,
 }
 
+/// Simplified parsing method only accepting reader
+pub trait TypeParse {
+    fn parse<N: Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError>
+    where
+        Self: Sized;
+}
+/// Parsing methods for parsing blocks
 pub trait BlockParse {
     fn parse<N: Read>(
         info: &BlockInfo,
@@ -41,16 +56,29 @@ impl Parse for Block {
         version: u32,
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
-        println!("Starting new block at offset {:x}", reader.offset());
-        let start_offset = reader.offset();
-
         let size = reader.read_u32()?;
+        // unknown value
         let _ = reader.read_u8()?;
         let min_version = reader.read_u8()?;
         let current_version = reader.read_u8()?;
         let block_type = reader.read_u8()?;
 
+        if current_version < min_version {
+            return Err(ParseError::invalid(
+                "current_version can't be smaller than min_version",
+            ));
+        }
+
+        let start_offset = reader.offset();
+
+        println!(
+            "Starting new block at offset {:x} until {:x}",
+            reader.offset() - 4,
+            start_offset + size as usize
+        );
+
         let info = BlockInfo {
+            start_offset,
             size,
             min_version,
             current_version,

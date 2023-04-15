@@ -18,7 +18,7 @@ impl<N: Read> Bitreader<N> {
     }
 
     // Read bytes and update the offset
-    pub fn read_exact(&mut self, buffer: &mut [u8]) -> Result<(), ParseError> {
+    fn read_exact(&mut self, buffer: &mut [u8]) -> Result<(), ParseError> {
         self.offset += buffer.len();
         self.bits.read_exact(buffer)?;
         return Ok(());
@@ -67,7 +67,44 @@ impl<N: Read> Bitreader<N> {
     pub fn read_u32(&mut self) -> Result<u32, ParseError> {
         let mut buffer = [0; 4];
         self.read_exact(&mut buffer)?;
-        println!("{buffer:?}");
         return Ok(u32::from_le_bytes(buffer));
+    }
+
+    /// Parse uuid from data in little endian format
+    /// Using Variant 2 UUID's with mixed endianess (https://en.wikipedia.org/wiki/Universally_unique_identifier#Encoding)
+    pub fn read_uuid(&mut self) -> Result<String, ParseError> {
+        let uuid_length = self.read_varuint()?;
+        if uuid_length != 16 {
+            return Err(ParseError::invalid("Expected UUID length to be 16 bytes"));
+        }
+
+        println!("{} {uuid_length}", self.offset());
+        let mut uuid_bytes: Vec<u8> = self.read_bytes(uuid_length as usize)?;
+
+        // Set first 3 uuid sections to big endianness
+        uuid_bytes[..4].reverse();
+        uuid_bytes[4..6].reverse();
+        uuid_bytes[6..8].reverse();
+
+        // put bytes in a single number
+        let uuid_bytes = u128::from_be_bytes(
+            uuid_bytes
+                .try_into()
+                .map_err(|_| ParseError::invalid("Failed to parse uuid bytes into integer"))?,
+        );
+
+        // turn hexidecimals into string
+        let uuid = format!("{uuid_bytes:032x}");
+        // add slashes
+        let uuid = format!(
+            "{}-{}-{}-{}-{}",
+            &uuid[..8],
+            &uuid[8..12],
+            &uuid[12..16],
+            &uuid[16..20],
+            &uuid[20..],
+        );
+
+        Ok(uuid)
     }
 }

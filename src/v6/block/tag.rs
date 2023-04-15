@@ -2,6 +2,7 @@ use crate::ParseError;
 
 use super::BlockInfo;
 use super::BlockParse;
+use super::TypeParse;
 
 #[derive(Debug, PartialEq)]
 pub enum TagType {
@@ -35,11 +36,8 @@ pub struct Tag {
     pub tag_type: TagType,
 }
 
-impl BlockParse for Tag {
-    fn parse<N: std::io::Read>(
-        _info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
-    ) -> Result<Self, ParseError> {
+impl TypeParse for Tag {
+    fn parse<N: std::io::Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError> {
         let x = reader.read_varuint()?;
         Ok(Tag {
             index: x >> 4,
