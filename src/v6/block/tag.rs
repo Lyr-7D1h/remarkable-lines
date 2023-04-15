@@ -36,6 +36,27 @@ pub struct Tag {
     pub tag_type: TagType,
 }
 
+impl Tag {
+    /// Helper function to easily generate errors and to validate
+    pub fn validate(&self, tag_type: TagType, index: u32) -> Result<(), ParseError> {
+        if self.tag_type != tag_type {
+            return Err(ParseError::invalid(format!(
+                "Invalid tag type given '{:?}' expected '{:?}'",
+                self.tag_type, tag_type
+            )));
+        }
+
+        if self.index != index {
+            return Err(ParseError::invalid(format!(
+                "Invalid tag index given '{:?}' expected '{:?}'",
+                self.index, index
+            )));
+        }
+
+        Ok(())
+    }
+}
+
 impl TypeParse for Tag {
     fn parse<N: std::io::Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError> {
         let x = reader.read_varuint()?;

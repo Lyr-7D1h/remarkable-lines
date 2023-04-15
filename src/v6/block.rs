@@ -5,6 +5,7 @@ use crate::{Bitreader, Parse, ParseError};
 mod blocks;
 mod crdtid;
 mod tag;
+mod text;
 use blocks::*;
 
 #[derive(Debug)]
@@ -106,7 +107,7 @@ impl Parse for Block {
         let end_offset = reader.offset();
         if expected_offset != reader.offset() {
             return Err(ParseError::invalid(format!(
-                "Block type '{block_type}' did not read expected size. Expected {expected_offset:x} given {end_offset:x}" 
+                "Block type '{block_type}' did not read expected size. got {end_offset:x} expected {expected_offset:x}" 
             )));
         }
 

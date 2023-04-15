@@ -30,6 +30,11 @@ impl<N: Read> Bitreader<N> {
         return Ok(buffer);
     }
 
+    pub fn read_string(&mut self, length: usize) -> Result<String, ParseError> {
+        return Ok(String::from_utf8(self.read_bytes(length)?)
+            .map_err(|_| ParseError::invalid("String contains invalid utf-8"))?);
+    }
+
     // https://en.wikipedia.org/wiki/Variable-length_quantity
     pub fn read_varuint(&mut self) -> Result<u32, ParseError> {
         let mut shift = 0;
@@ -46,10 +51,20 @@ impl<N: Read> Bitreader<N> {
         return Ok(result);
     }
 
+    pub fn read_bool(&mut self) -> Result<bool, ParseError> {
+        return Ok(self.read_u8()? > 0);
+    }
+
     pub fn read_f32(&mut self) -> Result<f32, ParseError> {
         let mut buffer = [0; 4];
         self.read_exact(&mut buffer)?;
         return Ok(f32::from_le_bytes(buffer));
+    }
+
+    pub fn read_f64(&mut self) -> Result<f64, ParseError> {
+        let mut buffer = [0; 8];
+        self.read_exact(&mut buffer)?;
+        return Ok(f64::from_le_bytes(buffer));
     }
 
     pub fn read_u8(&mut self) -> Result<u8, ParseError> {
