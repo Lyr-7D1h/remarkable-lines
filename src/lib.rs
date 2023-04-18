@@ -26,6 +26,9 @@ pub trait Parse {
 impl RemarkableFile {
     pub fn read(input: impl Read) -> Result<RemarkableFile, ParseError> {
         let mut reader = Bitreader::new(input);
+        return Self::read_impl(&mut reader).map_err(|e| e.with_bitreader(&reader));
+    }
+    fn read_impl(reader: &mut Bitreader<impl Read>) -> Result<RemarkableFile, ParseError> {
         let version_description = reader
             .read_bytes(43)?
             .into_iter()
@@ -60,7 +63,7 @@ impl RemarkableFile {
         let amount_pages = if version >= 3 { 1 } else { reader.read_u32()? };
 
         if version == 6 {
-            let tree = SceneTree::parse(version, &mut reader)?;
+            let tree = SceneTree::parse(version, reader)?;
             return Ok(RemarkableFile::V6 { tree });
         }
 
@@ -74,7 +77,7 @@ impl RemarkableFile {
         Ok(RemarkableFile::Other {
             version,
             pages: (0..amount_pages)
-                .map(|_| Page::parse(version, &mut reader))
+                .map(|_| Page::parse(version, reader))
                 .collect::<Result<Vec<Page>, ParseError>>()?,
         })
     }

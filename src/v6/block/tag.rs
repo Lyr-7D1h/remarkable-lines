@@ -1,7 +1,5 @@
 use crate::ParseError;
 
-use super::BlockInfo;
-use super::BlockParse;
 use super::TypeParse;
 
 #[derive(Debug, PartialEq)]
@@ -24,7 +22,7 @@ impl TryFrom<u32> for TagType {
             0xC => Ok(TagType::Length4),
             0x0F => Ok(TagType::ID),
             _ => Err(ParseError::invalid(format!(
-                "Invalid tool with value '{value}'"
+                "Invalid tag with value '{value}'"
             ))),
         }
     }

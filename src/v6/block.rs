@@ -33,7 +33,7 @@ pub enum Block {
     SceneLineItem,
     SceneTextItem,
     AuthorsIds(AuthorsIdsBlock),
-    RootText,
+    RootText(RootTextBlock),
 }
 
 /// Simplified parsing method only accepting reader
@@ -93,7 +93,7 @@ impl Parse for Block {
             0x04 => Block::SceneGroupItem,
             0x05 => Block::SceneLineItem,
             0x06 => Block::SceneTextItem,
-            0x07 => Block::RootText,
+            0x07 => Block::RootText(RootTextBlock::parse(&info, reader)?),
             0x09 => Block::AuthorsIds(AuthorsIdsBlock::parse(&info, reader)?),
             0x0A => Block::PageInfo(PageInfoBlock::parse(&info, reader)?),
             _ => {

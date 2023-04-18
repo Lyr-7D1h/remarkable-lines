@@ -5,6 +5,7 @@ use crate::ParseError;
 /// A little endian binary reader
 pub struct Bitreader<N: Read> {
     bits: N,
+    peek: bool,
     // inner buffer is used to temporarly store thinks in order to support look ahead
     inner_buffer: Vec<u8>,
     offset: usize,
@@ -15,12 +16,17 @@ impl<N: Read> Bitreader<N> {
         Bitreader {
             bits,
             offset: 0,
+            peek: false,
             inner_buffer: vec![],
         }
     }
 
     pub fn offset(&self) -> usize {
         self.offset
+    }
+
+    pub fn set_peek(&mut self, peek: bool) {
+        self.peek = peek;
     }
 
     // Read bytes first from inner buffer than from bits, will also update the offset

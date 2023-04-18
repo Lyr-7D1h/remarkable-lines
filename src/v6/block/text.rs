@@ -76,7 +76,7 @@ impl TypeParse for Text {
         let _length = reader.read_u32()?;
 
         Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let mut amount_subblocks = reader.read_varuint()?;
+        let amount_subblocks = reader.read_varuint()?;
         let items = (0..amount_subblocks)
             .into_iter()
             .map(|_| {
@@ -109,7 +109,7 @@ impl TypeParse for Text {
             .collect::<Result<Vec<TextItem>, ParseError>>()?;
 
         Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let mut amount_subblocks = reader.read_varuint()?;
+        let amount_subblocks = reader.read_varuint()?;
         let styles = (0..amount_subblocks)
             .into_iter()
             .map(|_| {

@@ -1,4 +1,10 @@
-use std::{error, fmt, i32, io, num, string, u32};
+use std::{
+    error, fmt, i32,
+    io::{self, Read},
+    num, string, u32,
+};
+
+use super::Bitreader;
 
 #[derive(Debug)]
 pub enum ParseErrorKind {
@@ -11,6 +17,7 @@ pub enum ParseErrorKind {
 pub struct ParseError {
     kind: ParseErrorKind,
     message: String,
+    context: String,
 }
 
 impl ParseError {
@@ -18,6 +25,7 @@ impl ParseError {
         ParseError {
             message: message.into(),
             kind,
+            context: String::new(),
         }
     }
 
@@ -28,12 +36,25 @@ impl ParseError {
     pub fn unsupported<S: Into<String>>(message: S) -> ParseError {
         Self::new(message, ParseErrorKind::Unsupported)
     }
+
+    pub fn with_bitreader(mut self, bitreader: &Bitreader<impl Read>) -> ParseError {
+        self.context = format!(
+            "error occured while parsing at bit position: {:x}",
+            bitreader.offset()
+        );
+        self
+    }
 }
 
 impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error while parsing remarkable file {}", self.message)
+        write!(
+            f,
+            "Error while parsing remarkable file {}. {}",
+            self.message,
+            format!("\n{}", self.context)
+        )
     }
 }
 impl From<io::Error> for ParseError {
@@ -51,7 +72,10 @@ impl From<num::ParseIntError> for ParseError {
 }
 impl From<num::TryFromIntError> for ParseError {
     fn from(error: num::TryFromIntError) -> Self {
-        Self::new(format!("Failed to read input: {error}"), ParseErrorKind::InvalidInput)
+        Self::new(
+            format!("Failed to read input: {error}"),
+            ParseErrorKind::InvalidInput,
+        )
     }
 }
 
