@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ParseError;
+use crate::{bitreader, ParseError};
 
 use super::{
     crdtid::CrdtId,
@@ -70,17 +70,19 @@ impl TypeParse for Text {
     fn parse<N: std::io::Read>(
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, crate::ParseError> {
+        // subblocks
         Tag::parse(reader)?.validate(TagType::Length4, 2)?;
         let _length = reader.read_u32()?;
-        Tag::parse(reader)?.validate(TagType::Length4, 3)?;
+        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
+        let _length = reader.read_u32()?;
+        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
         let _length = reader.read_u32()?;
 
-        Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let amount_subblocks = reader.read_varuint()?;
-        let items = (0..amount_subblocks)
+        let amount_items = reader.read_varuint()?;
+        let items = (0..amount_items)
             .into_iter()
             .map(|_| {
-                Tag::parse(reader)?.validate(TagType::Length4, 1)?;
+                Tag::parse(reader)?.validate(TagType::Length4, 0)?;
                 let _length = reader.read_u32()?;
                 Tag::parse(reader)?.validate(TagType::ID, 2)?;
                 let item_id = CrdtId::parse(reader)?;
@@ -88,10 +90,13 @@ impl TypeParse for Text {
                 let left_id = CrdtId::parse(reader)?;
                 Tag::parse(reader)?.validate(TagType::ID, 4)?;
                 let right_id = CrdtId::parse(reader)?;
+                Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
                 let deleted_length = reader.read_u32();
 
-                Tag::parse(reader)?.validate(TagType::Length4, 5)?;
+                // subblock
+                Tag::parse(reader)?.validate(TagType::Length4, 6)?;
                 let _length = reader.read_u32()?;
+
                 let string_length = reader.read_varuint()?;
                 // XXX might have a different meaning
                 let is_ascii = reader.read_bool()?;
@@ -108,13 +113,18 @@ impl TypeParse for Text {
             })
             .collect::<Result<Vec<TextItem>, ParseError>>()?;
 
+        // subblocks
         Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let amount_subblocks = reader.read_varuint()?;
-        let styles = (0..amount_subblocks)
+        let _length = reader.read_u32()?;
+        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
+        let _length = reader.read_u32()?;
+
+        let amount_styles = reader.read_varuint()?;
+        let styles = (0..amount_styles)
             .into_iter()
             .map(|_| {
                 let id = CrdtId::parse(reader)?;
-                Tag::parse(reader)?.validate(TagType::ID, 2)?;
+                Tag::parse(reader)?.validate(TagType::ID, 1)?;
                 let timestamp = CrdtId::parse(reader)?;
 
                 Tag::parse(reader)?.validate(TagType::Length4, 2)?;
@@ -124,7 +134,7 @@ impl TypeParse for Text {
             })
             .collect::<Result<HashMap<CrdtId, LwwValue<ParagraphStyle>>, ParseError>>()?;
 
-        Tag::parse(reader)?.validate(TagType::Length4, 2)?;
+        Tag::parse(reader)?.validate(TagType::Length4, 3)?;
         let _length = reader.read_varuint()?;
         let x = reader.read_f64()?;
         let y = reader.read_f64()?;

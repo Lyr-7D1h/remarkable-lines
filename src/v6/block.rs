@@ -73,7 +73,7 @@ impl Parse for Block {
         let start_offset = reader.offset();
 
         println!(
-            "Starting new block at offset {:x} until {:x}",
+            "\nStarting new block at offset {:x} until {:x}",
             reader.offset() - 4,
             start_offset + size as usize
         );

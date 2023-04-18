@@ -165,9 +165,9 @@ impl BlockParse for RootTextBlock {
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let id = CrdtId::parse(reader)?;
+        let block_id = CrdtId::parse(reader)?;
         Ok(RootTextBlock {
-            block_id: CrdtId::parse(reader)?,
+            block_id,
             text: Text::parse(reader)?,
         })
     }
