@@ -52,11 +52,8 @@ pub trait BlockParse {
         Self: Sized;
 }
 
-impl Parse for Block {
-    fn parse<N: std::io::Read>(
-        version: u32,
-        reader: &mut crate::Bitreader<N>,
-    ) -> Result<Self, ParseError> {
+impl TypeParse for Block {
+    fn parse<N: std::io::Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError> {
         let size = reader.read_u32()?;
         // unknown value
         let _ = reader.read_u8()?;

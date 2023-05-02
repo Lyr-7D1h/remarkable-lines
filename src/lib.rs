@@ -28,6 +28,7 @@ impl RemarkableFile {
         let mut reader = Bitreader::new(input);
         return Self::read_impl(&mut reader).map_err(|e| e.with_bitreader(&reader));
     }
+
     fn read_impl(reader: &mut Bitreader<impl Read>) -> Result<RemarkableFile, ParseError> {
         let version_description = reader
             .read_bytes(43)?

@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{v6::Block, Parse};
+use crate::{
+    v6::{block::TypeParse, Block},
+    Parse,
+};
 
 struct Node {
     id: String,
@@ -21,7 +24,7 @@ impl Parse for SceneTree {
         reader: &mut crate::Bitreader<N>,
     ) -> Result<Self, crate::ParseError> {
         loop {
-            let block = Block::parse(version, reader)?;
+            let block = Block::parse(reader)?;
             println!("{block:?}");
         }
 

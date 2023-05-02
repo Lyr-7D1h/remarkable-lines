@@ -166,6 +166,7 @@ impl BlockParse for RootTextBlock {
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
         let block_id = CrdtId::parse(reader)?;
+
         Ok(RootTextBlock {
             block_id,
             text: Text::parse(reader)?,

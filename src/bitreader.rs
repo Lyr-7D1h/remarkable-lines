@@ -61,7 +61,13 @@ impl<N: Read> Bitreader<N> {
             return Ok(());
         }
 
-        self.bits.read_exact(buffer)?;
+        if self.peek {
+            self.bits.read_exact(&mut self.inner_buffer)?;
+            buffer.clone_from_slice(&self.inner_buffer);
+        } else {
+            self.bits.read_exact(buffer)?;
+        }
+
         return Ok(());
     }
 
@@ -163,4 +169,10 @@ impl<N: Read> Bitreader<N> {
 
         Ok(uuid)
     }
+}
+
+#[test]
+fn test_read_uuid() {
+    // let bits = 0x495ba59fc9432b5cb4553682f6948906;
+    // Bitreader::new(&bits)
 }
