@@ -9,7 +9,7 @@ use crate::{
     ParseError,
 };
 
-use super::{crdtid::CrdtId, text::Text, BlockInfo, BlockParse};
+use super::{crdtid::CrdtId, subblock::SubBlock, text::Text, BlockInfo, BlockParse};
 
 #[derive(Debug)]
 pub struct MigrationInfoBlock {
@@ -131,10 +131,10 @@ impl BlockParse for SceneTreeBlock {
         Tag::parse(reader)?.validate(TagType::Byte1, 3)?;
         let is_update = reader.read_bool()?;
 
-        Tag::parse(reader)?.validate(TagType::Length4, 4)?;
-        let _subblock_length = reader.read_u32()?;
+        let subblock = SubBlock::parse(reader)?.validate_tag(4)?;
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
         let parent_id = CrdtId::parse(reader)?;
+        subblock.validate_size(reader)?;
 
         Ok(Self {
             tree_id,

@@ -11,7 +11,7 @@ pub struct CrdtId {
 impl TypeParse for CrdtId {
     fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, crate::ParseError> {
         Ok(CrdtId {
-            part1: reader.read_u8()?, // TODO might be var unit
+            part1: reader.read_u8()?, // XXX might be var unit
             part2: reader.read_varuint()?,
         })
     }

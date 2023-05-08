@@ -2,8 +2,8 @@ use std::io::{Cursor, Read};
 
 use crate::ParseError;
 
-pub trait Readable: Read {}
-impl<T: Read> Readable for T {}
+pub trait Readable: Read + AsRef<[u8]> {}
+impl<T: Read + AsRef<[u8]>> Readable for T {}
 
 /// A little endian binary reader
 pub struct Bitreader<N: Readable> {
@@ -11,7 +11,7 @@ pub struct Bitreader<N: Readable> {
 }
 
 impl<N: Readable> Bitreader<N> {
-    pub fn new(bits: N) -> Bitreader<impl Readable> {
+    pub fn new(bits: N) -> Bitreader<N> {
         Bitreader {
             cursor: Cursor::new(bits),
         }
@@ -23,13 +23,12 @@ impl<N: Readable> Bitreader<N> {
 
     pub fn set_position(&mut self, position: u64) {
         self.cursor.set_position(position);
+        // self.cursor.seek(SeekFrom::Current(position)).unwrap();
     }
 
     // Read bytes first from inner buffer than from bits, will also update the offset
     fn read_exact(&mut self, buffer: &mut [u8]) -> Result<(), ParseError> {
-        self.cursor.get_mut().read_exact(buffer)?;
-        self.cursor
-            .set_position(self.cursor.position() + buffer.len() as u64);
+        self.cursor.read_exact(buffer)?;
 
         return Ok(());
     }
@@ -48,13 +47,13 @@ impl<N: Readable> Bitreader<N> {
     // https://en.wikipedia.org/wiki/Variable-length_quantity
     pub fn read_varuint(&mut self) -> Result<u32, ParseError> {
         let mut shift = 0;
-        let mut result: u32 = 0;
+        let mut result = 0;
         let mut i;
         loop {
-            i = self.read_bytes(1)?[0];
-            result |= ((i & 0x7F) as u32) << shift;
+            i = self.read_u8()?;
+            result |= ((i & 0x7F) << shift) as u32;
             shift += 7;
-            if i & 0x80 != 0x80 {
+            if i & 0x80 == 0 {
                 break;
             }
         }

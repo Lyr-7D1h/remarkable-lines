@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Seek};
 
 use crate::{bitreader::Readable, ParseError};
 
@@ -99,15 +99,15 @@ impl TypeParse for Text {
                     let is_ascii = reader.read_bool()?;
                     let string = reader.read_string(string_length as usize)?;
 
+                    // if tag exists use format
                     let pos = reader.position();
                     if let Ok(_) = Tag::parse(reader)?.validate(TagType::Byte4, 2) {
-                        Tag::parse(reader)?.validate(TagType::Byte4, 2)?;
                         let fmt_code = reader.read_u32()?;
                         return Ok(TextItem::FormatCode(fmt_code));
-                    } else {
-                        reader.set_position(pos);
-                        return Ok(TextItem::Text(string));
                     }
+                    reader.set_position(pos); // reset
+
+                    return Ok(TextItem::Text(string));
                 }
 
                 reader.set_position(pos);
@@ -118,7 +118,6 @@ impl TypeParse for Text {
         subblock2.validate_size(reader)?;
         subblock3.validate_size(reader)?;
 
-        println!("{:x}", reader.position());
         let subblock4 = SubBlock::parse(reader)?.validate_tag(2)?;
         let subblock5 = SubBlock::parse(reader)?.validate_tag(1)?;
 
@@ -131,10 +130,18 @@ impl TypeParse for Text {
                 Tag::parse(reader)?.validate(TagType::ID, 1)?;
                 let timestamp = CrdtId::parse(reader)?;
 
-                Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-                let _length = reader.read_varuint()?;
-                let value = ParagraphStyle::try_from(reader.read_u8()?)?;
-                Ok((id, LwwValue { timestamp, value }))
+                let subblock6 = SubBlock::parse(reader)?.validate_tag(2)?;
+                // XXX not sure what this is format?
+                let _c = reader.read_u8()?;
+                let style = ParagraphStyle::try_from(reader.read_u8()?)?;
+                subblock6.validate_size(reader)?;
+                Ok((
+                    id,
+                    LwwValue {
+                        timestamp,
+                        value: style,
+                    },
+                ))
             })
             .collect::<Result<HashMap<CrdtId, LwwValue<ParagraphStyle>>, ParseError>>()?;
 
@@ -146,12 +153,12 @@ impl TypeParse for Text {
         // Last section
         // "pos_x" and "pos_y" from ddvk? Gives negative number -- possibly could
         // be bounding box?
-        Tag::parse(reader)?.validate(TagType::Length4, 3)?;
-        let _length = reader.read_varuint()?;
+        let subblock7 = SubBlock::parse(reader)?.validate_tag(3)?;
         let x = reader.read_f64()?;
         let y = reader.read_f64()?;
+        subblock7.validate_size(reader)?;
 
-        Tag::parse(reader)?.validate(TagType::Length4, 2)?;
+        Tag::parse(reader)?.validate(TagType::Byte4, 4)?;
         let width = reader.read_f32()?;
         Ok(Text {
             items,
