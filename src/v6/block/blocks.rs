@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::format, io::Read};
 
 use crate::{
+    bitreader::Readable,
     v6::block::{
         tag::{Tag, TagType},
         TypeParse,
@@ -16,9 +17,9 @@ pub struct MigrationInfoBlock {
     is_device: bool,
 }
 impl BlockParse for MigrationInfoBlock {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
         let migration_id = CrdtId::parse(reader)?;
@@ -41,9 +42,9 @@ pub struct AuthorsIdsBlock {
     authors: HashMap<u16, String>,
 }
 impl BlockParse for AuthorsIdsBlock {
-    fn parse<N: Read>(
+    fn parse(
         _info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         let amount_subblocks = reader.read_varuint()?;
         let mut authors = HashMap::new();
@@ -71,9 +72,9 @@ pub struct PageInfoBlock {
     text_lines_count: u32,
 }
 impl BlockParse for PageInfoBlock {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::Byte4, 1)?;
         let loads_count = reader.read_u32()?;
@@ -104,9 +105,9 @@ impl BlockParse for PageInfoBlock {
 #[derive(Debug)]
 pub struct TreeNodeBlock {}
 impl BlockParse for TreeNodeBlock {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Ok(Self {})
     }
@@ -119,9 +120,9 @@ pub struct SceneTreeBlock {
     parent_id: CrdtId,
 }
 impl BlockParse for SceneTreeBlock {
-    fn parse<N: Read>(
+    fn parse(
         _info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
         let tree_id = CrdtId::parse(reader)?;
@@ -146,9 +147,9 @@ impl BlockParse for SceneTreeBlock {
 #[derive(Debug)]
 pub struct SceneGlyphItem {}
 impl BlockParse for SceneGlyphItem {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Ok(Self {})
     }
@@ -160,9 +161,9 @@ pub struct RootTextBlock {
     text: Text,
 }
 impl BlockParse for RootTextBlock {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Tag::parse(reader)?.validate(TagType::ID, 1)?;
         let block_id = CrdtId::parse(reader)?;

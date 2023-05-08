@@ -1,4 +1,4 @@
-use crate::ParseError;
+use crate::{bitreader::Readable, ParseError};
 
 use super::TypeParse;
 
@@ -22,7 +22,7 @@ impl TryFrom<u32> for TagType {
             0xC => Ok(TagType::Length4),
             0x0F => Ok(TagType::ID),
             _ => Err(ParseError::invalid(format!(
-                "Invalid tag with value '{value}'"
+                "Invalid tag for value '{value}'"
             ))),
         }
     }
@@ -56,7 +56,7 @@ impl Tag {
 }
 
 impl TypeParse for Tag {
-    fn parse<N: std::io::Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError> {
+    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, ParseError> {
         let x = reader.read_varuint()?;
         Ok(Tag {
             index: x >> 4,

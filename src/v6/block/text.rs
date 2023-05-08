@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{bitreader, ParseError};
+use crate::{bitreader::Readable, ParseError};
 
 use super::{
     crdtid::CrdtId,
+    subblock::SubBlock,
     tag::{Tag, TagType},
     TypeParse,
 };
@@ -67,17 +68,13 @@ pub struct Text {
     width: f32,
 }
 impl TypeParse for Text {
-    fn parse<N: std::io::Read>(
-        reader: &mut crate::Bitreader<N>,
-    ) -> Result<Self, crate::ParseError> {
+    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, crate::ParseError> {
         // subblocks
-        Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let _length = reader.read_u32()?;
-        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
-        let _length = reader.read_u32()?;
-        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
-        let _length = reader.read_u32()?;
+        let subblock1 = SubBlock::parse(reader)?.validate_tag(2)?;
+        let subblock2 = SubBlock::parse(reader)?.validate_tag(1)?;
+        let subblock3 = SubBlock::parse(reader)?.validate_tag(1)?;
 
+        // Text items
         let amount_items = reader.read_varuint()?;
         let items = (0..amount_items)
             .into_iter()
@@ -93,32 +90,39 @@ impl TypeParse for Text {
                 Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
                 let deleted_length = reader.read_u32();
 
-                // subblock
-                Tag::parse(reader)?.validate(TagType::Length4, 6)?;
-                let _length = reader.read_u32()?;
+                let pos = reader.position();
+                if let Ok(_) = Tag::parse(reader)?.validate(TagType::Length4, 6) {
+                    let _length = reader.read_u32()?;
 
-                let string_length = reader.read_varuint()?;
-                // XXX might have a different meaning
-                let is_ascii = reader.read_bool()?;
-                let string = reader.read_string(string_length as usize)?;
+                    let string_length = reader.read_varuint()?;
+                    // XXX might have a different meaning
+                    let is_ascii = reader.read_bool()?;
+                    let string = reader.read_string(string_length as usize)?;
 
-                // FIXME peek to check for tag
-                // if tag_exists {
-                //     Tag::parse(reader)?.validate(TagType::Byte4, 2)?;
-                //     let fmt_code = reader.read_u32()?;
-                //     Ok(TextItem::FormatCode(fmt_code))
-                // } else {
-                Ok(TextItem::Text(string))
-                // }
+                    let pos = reader.position();
+                    if let Ok(_) = Tag::parse(reader)?.validate(TagType::Byte4, 2) {
+                        Tag::parse(reader)?.validate(TagType::Byte4, 2)?;
+                        let fmt_code = reader.read_u32()?;
+                        return Ok(TextItem::FormatCode(fmt_code));
+                    } else {
+                        reader.set_position(pos);
+                        return Ok(TextItem::Text(string));
+                    }
+                }
+
+                reader.set_position(pos);
+                return Ok(TextItem::Text(String::new()));
             })
             .collect::<Result<Vec<TextItem>, ParseError>>()?;
 
-        // subblocks
-        Tag::parse(reader)?.validate(TagType::Length4, 2)?;
-        let _length = reader.read_u32()?;
-        Tag::parse(reader)?.validate(TagType::Length4, 1)?;
-        let _length = reader.read_u32()?;
+        subblock2.validate_size(reader)?;
+        subblock3.validate_size(reader)?;
 
+        println!("{:x}", reader.position());
+        let subblock4 = SubBlock::parse(reader)?.validate_tag(2)?;
+        let subblock5 = SubBlock::parse(reader)?.validate_tag(1)?;
+
+        // Formatting
         let amount_styles = reader.read_varuint()?;
         let styles = (0..amount_styles)
             .into_iter()
@@ -134,10 +138,19 @@ impl TypeParse for Text {
             })
             .collect::<Result<HashMap<CrdtId, LwwValue<ParagraphStyle>>, ParseError>>()?;
 
+        subblock4.validate_size(reader)?;
+        subblock5.validate_size(reader)?;
+
+        subblock1.validate_size(reader)?;
+
+        // Last section
+        // "pos_x" and "pos_y" from ddvk? Gives negative number -- possibly could
+        // be bounding box?
         Tag::parse(reader)?.validate(TagType::Length4, 3)?;
         let _length = reader.read_varuint()?;
         let x = reader.read_f64()?;
         let y = reader.read_f64()?;
+
         Tag::parse(reader)?.validate(TagType::Length4, 2)?;
         let width = reader.read_f32()?;
         Ok(Text {

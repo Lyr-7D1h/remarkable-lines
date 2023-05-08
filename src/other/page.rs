@@ -1,4 +1,4 @@
-use crate::{Parse, ParseError};
+use crate::{bitreader::Readable, Parse, ParseError};
 
 use super::layer::Layer;
 
@@ -8,9 +8,9 @@ pub struct Page {
 }
 
 impl Parse for Page {
-    fn parse<N: std::io::Read>(
+    fn parse(
         version: u32,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, crate::ParseError> {
         let amount_layers = reader.read_u32()?;
 

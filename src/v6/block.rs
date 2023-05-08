@@ -1,24 +1,23 @@
-use std::io::Read;
-
-use crate::{Bitreader, Parse, ParseError};
+use crate::{bitreader::Readable, Bitreader, ParseError};
 
 mod blocks;
 mod crdtid;
+mod subblock;
 mod tag;
 mod text;
 use blocks::*;
 
 #[derive(Debug)]
 pub struct BlockInfo {
-    start_offset: usize,
+    start_offset: u64,
     size: u32,
     min_version: u8,
     current_version: u8,
 }
 
 impl BlockInfo {
-    pub fn has_bytes_remaining(&self, reader: &Bitreader<impl Read>) -> bool {
-        self.start_offset + self.size as usize > reader.offset()
+    pub fn has_bytes_remaining(&self, reader: &Bitreader<impl Readable>) -> bool {
+        self.start_offset + self.size as u64 > reader.position()
     }
 }
 
@@ -38,22 +37,22 @@ pub enum Block {
 
 /// Simplified parsing method only accepting reader
 pub trait TypeParse {
-    fn parse<N: Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError>
+    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, ParseError>
     where
         Self: Sized;
 }
 /// Parsing methods for parsing blocks
 pub trait BlockParse {
-    fn parse<N: Read>(
+    fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError>
     where
         Self: Sized;
 }
 
 impl TypeParse for Block {
-    fn parse<N: std::io::Read>(reader: &mut crate::Bitreader<N>) -> Result<Self, ParseError> {
+    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, ParseError> {
         let size = reader.read_u32()?;
         // unknown value
         let _ = reader.read_u8()?;
@@ -67,12 +66,12 @@ impl TypeParse for Block {
             ));
         }
 
-        let start_offset = reader.offset();
+        let start_offset = reader.position();
 
         println!(
             "\nStarting new block at offset {:x} until {:x}",
-            reader.offset() - 4,
-            start_offset + size as usize
+            reader.position() - 4,
+            start_offset + size as u64
         );
 
         let info = BlockInfo {
@@ -100,9 +99,9 @@ impl TypeParse for Block {
             }
         };
 
-        let expected_offset = start_offset + usize::try_from(size)?;
-        let end_offset = reader.offset();
-        if expected_offset != reader.offset() {
+        let expected_offset = start_offset + size as u64;
+        let end_offset = reader.position();
+        if expected_offset != end_offset {
             return Err(ParseError::invalid(format!(
                 "Block type '{block_type}' did not read expected size. got {end_offset:x} expected {expected_offset:x}" 
             )));

@@ -1,72 +1,35 @@
-use std::io::Read;
+use std::io::{Cursor, Read};
 
 use crate::ParseError;
 
+pub trait Readable: Read {}
+impl<T: Read> Readable for T {}
+
 /// A little endian binary reader
-pub struct Bitreader<N: Read> {
-    bits: N,
-    peek: bool,
-    // inner buffer is used to temporarly store thinks in order to support look ahead
-    inner_buffer: Vec<u8>,
-    offset: usize,
+pub struct Bitreader<N: Readable> {
+    cursor: Cursor<N>,
 }
 
-impl<N: Read> Bitreader<N> {
-    pub fn new(bits: N) -> Bitreader<N> {
+impl<N: Readable> Bitreader<N> {
+    pub fn new(bits: N) -> Bitreader<impl Readable> {
         Bitreader {
-            bits,
-            offset: 0,
-            peek: false,
-            inner_buffer: vec![],
+            cursor: Cursor::new(bits),
         }
     }
 
-    pub fn offset(&self) -> usize {
-        self.offset
+    pub fn position(&self) -> u64 {
+        self.cursor.position()
     }
 
-    pub fn set_peek(&mut self, peek: bool) {
-        self.peek = peek;
+    pub fn set_position(&mut self, position: u64) {
+        self.cursor.set_position(position);
     }
 
     // Read bytes first from inner buffer than from bits, will also update the offset
     fn read_exact(&mut self, buffer: &mut [u8]) -> Result<(), ParseError> {
-        self.offset += buffer.len();
-
-        if self.inner_buffer.len() > 0 {
-            // if there is enough in inner_buffer fill up buffer
-            if self.inner_buffer.len() > buffer.len() {
-                self.inner_buffer
-                    .drain(0..buffer.len())
-                    .enumerate()
-                    .for_each(|(i, b)| buffer[i] = b);
-                return Ok(());
-            }
-
-            // remove all values from inner_buffer
-            let mut inner_buffer = self
-                .inner_buffer
-                .drain(0..self.inner_buffer.len())
-                .collect::<Vec<u8>>();
-
-            // read the last few bytes and append to removed inner buffer values
-            inner_buffer.append(&mut self.read_bytes(buffer.len() - self.inner_buffer.len())?);
-
-            // fill buffer
-            inner_buffer
-                .into_iter()
-                .enumerate()
-                .for_each(|(i, b)| buffer[i] = b);
-
-            return Ok(());
-        }
-
-        if self.peek {
-            self.bits.read_exact(&mut self.inner_buffer)?;
-            buffer.clone_from_slice(&self.inner_buffer);
-        } else {
-            self.bits.read_exact(buffer)?;
-        }
+        self.cursor.get_mut().read_exact(buffer)?;
+        self.cursor
+            .set_position(self.cursor.position() + buffer.len() as u64);
 
         return Ok(());
     }
@@ -140,7 +103,7 @@ impl<N: Read> Bitreader<N> {
             return Err(ParseError::invalid("Expected UUID length to be 16 bytes"));
         }
 
-        println!("{} {uuid_length}", self.offset());
+        println!("{} {uuid_length}", self.position());
         let mut uuid_bytes: Vec<u8> = self.read_bytes(uuid_length as usize)?;
 
         // Set first 3 uuid sections to big endianness
@@ -171,8 +134,9 @@ impl<N: Read> Bitreader<N> {
     }
 }
 
-#[test]
-fn test_read_uuid() {
-    // let bits = 0x495ba59fc9432b5cb4553682f6948906;
-    // Bitreader::new(&bits)
-}
+// #[test]
+// fn test_read_uuid() {
+//     let a: u128 = 0x495ba59fc9432b5cb4553682f6948906;
+//     Bitreader::new(&a.to_le_bytes())
+// }
+//

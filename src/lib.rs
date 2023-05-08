@@ -1,5 +1,4 @@
-use std::io::Read;
-
+use bitreader::Readable;
 use other::page::Page;
 use v6::SceneTree;
 
@@ -18,18 +17,18 @@ pub enum RemarkableFile {
 }
 
 pub trait Parse {
-    fn parse<N: Read>(version: u32, reader: &mut Bitreader<N>) -> Result<Self, ParseError>
+    fn parse(version: u32, reader: &mut Bitreader<impl Readable>) -> Result<Self, ParseError>
     where
         Self: Sized;
 }
 
 impl RemarkableFile {
-    pub fn read(input: impl Read) -> Result<RemarkableFile, ParseError> {
+    pub fn read(input: impl Readable) -> Result<RemarkableFile, ParseError> {
         let mut reader = Bitreader::new(input);
         return Self::read_impl(&mut reader).map_err(|e| e.with_bitreader(&reader));
     }
 
-    fn read_impl(reader: &mut Bitreader<impl Read>) -> Result<RemarkableFile, ParseError> {
+    fn read_impl(reader: &mut Bitreader<impl Readable>) -> Result<RemarkableFile, ParseError> {
         let version_description = reader
             .read_bytes(43)?
             .into_iter()

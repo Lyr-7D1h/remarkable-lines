@@ -1,3 +1,4 @@
+use crate::bitreader::Readable;
 use crate::Parse;
 use crate::ParseError;
 
@@ -14,9 +15,9 @@ pub struct Line {
 }
 
 impl Parse for Line {
-    fn parse<N: std::io::Read>(
+    fn parse(
         version: u32,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, crate::ParseError> {
         let tool = Tool::try_from(reader.read_u32()?)?;
         let color = Color::try_from(reader.read_u32()?)?;

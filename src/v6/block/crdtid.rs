@@ -1,3 +1,5 @@
+use crate::bitreader::Readable;
+
 use super::TypeParse;
 
 #[derive(Debug, Hash, PartialEq, Eq)]
@@ -7,9 +9,7 @@ pub struct CrdtId {
 }
 
 impl TypeParse for CrdtId {
-    fn parse<N: std::io::Read>(
-        reader: &mut crate::Bitreader<N>,
-    ) -> Result<Self, crate::ParseError> {
+    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, crate::ParseError> {
         Ok(CrdtId {
             part1: reader.read_u8()?, // TODO might be var unit
             part2: reader.read_varuint()?,

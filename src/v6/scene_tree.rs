@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    bitreader::Readable,
     v6::{block::TypeParse, Block},
     Parse,
 };
@@ -19,9 +20,9 @@ pub struct SceneTree {
 }
 
 impl Parse for SceneTree {
-    fn parse<N: std::io::Read>(
+    fn parse(
         version: u32,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, crate::ParseError> {
         loop {
             let block = Block::parse(reader)?;

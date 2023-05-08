@@ -1,4 +1,4 @@
-use crate::Parse;
+use crate::{bitreader::Readable, Parse};
 
 #[derive(Debug)]
 pub struct Point {
@@ -11,9 +11,9 @@ pub struct Point {
 }
 
 impl Parse for Point {
-    fn parse<N: std::io::Read>(
+    fn parse(
         _version: u32,
-        reader: &mut crate::Bitreader<N>,
+        reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, crate::ParseError> {
         Ok(Point {
             x: reader.read_f32()?,

@@ -4,6 +4,8 @@ use std::{
     num, string, u32,
 };
 
+use crate::bitreader::Readable;
+
 use super::Bitreader;
 
 #[derive(Debug)]
@@ -37,10 +39,10 @@ impl ParseError {
         Self::new(message, ParseErrorKind::Unsupported)
     }
 
-    pub fn with_bitreader(mut self, bitreader: &Bitreader<impl Read>) -> ParseError {
+    pub fn with_bitreader(mut self, bitreader: &Bitreader<impl Readable>) -> ParseError {
         self.context = format!(
             "error occured while parsing at bit position: {:x}",
-            bitreader.offset()
+            bitreader.position()
         );
         self
     }
