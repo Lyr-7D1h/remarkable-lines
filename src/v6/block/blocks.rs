@@ -112,6 +112,7 @@ impl BlockParse for TreeNodeBlock {
         Ok(Self {})
     }
 }
+
 #[derive(Debug)]
 pub struct SceneTreeBlock {
     tree_id: CrdtId,

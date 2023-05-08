@@ -2,6 +2,7 @@ use crate::{bitreader::Readable, Bitreader, ParseError};
 
 mod blocks;
 mod crdtid;
+mod group;
 mod subblock;
 mod tag;
 mod text;
