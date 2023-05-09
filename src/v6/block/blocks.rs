@@ -9,7 +9,10 @@ use crate::{
     ParseError,
 };
 
-use super::{crdtid::CrdtId, subblock::SubBlock, text::Text, BlockInfo, BlockParse};
+use super::{
+    crdt::CrdtId, group::Group, lwwvalue::LwwValue, subblock::SubBlock, text::Text, BlockInfo,
+    BlockParse,
+};
 
 #[derive(Debug)]
 pub struct MigrationInfoBlock {
@@ -103,13 +106,28 @@ impl BlockParse for PageInfoBlock {
 }
 
 #[derive(Debug)]
-pub struct TreeNodeBlock {}
+pub struct TreeNodeBlock {
+    group: Group,
+}
 impl BlockParse for TreeNodeBlock {
     fn parse(
         info: &BlockInfo,
         reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        Ok(Self {})
+        let mut group = Group::default();
+        Tag::parse(reader)?.validate(TagType::ID, 1)?;
+        group.node_id = CrdtId::parse(reader)?;
+        group.label = LwwValue::<String>::read_lww_string(reader, 2)?;
+        group.visible = LwwValue::<bool>::read_lww_bool(reader, 3)?;
+
+        if info.has_bytes_remaining(reader) {
+            group.anchor_id = Some(LwwValue::<CrdtId>::read_lww_id(reader, 7)?);
+            group.anchor_type = Some(LwwValue::<u8>::read_u8(reader, 8)?);
+            group.anchor_threshold = Some(LwwValue::<f32>::read_lww_float(reader, 9)?);
+            group.anchor_origin_x = Some(LwwValue::<f32>::read_lww_float(reader, 10)?);
+        }
+
+        Ok(Self { group })
     }
 }
 
@@ -120,6 +138,7 @@ pub struct SceneTreeBlock {
     is_update: bool,
     parent_id: CrdtId,
 }
+
 impl BlockParse for SceneTreeBlock {
     fn parse(
         _info: &BlockInfo,

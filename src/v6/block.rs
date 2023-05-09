@@ -1,8 +1,9 @@
 use crate::{bitreader::Readable, Bitreader, ParseError};
 
 mod blocks;
-mod crdtid;
+mod crdt;
 mod group;
+mod lwwvalue;
 mod subblock;
 mod tag;
 mod text;

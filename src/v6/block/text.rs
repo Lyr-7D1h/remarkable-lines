@@ -1,19 +1,14 @@
-use std::{collections::HashMap, io::Seek};
+use std::collections::HashMap;
 
 use crate::{bitreader::Readable, ParseError};
 
 use super::{
-    crdtid::CrdtId,
+    crdt::CrdtId,
+    lwwvalue::LwwValue,
     subblock::SubBlock,
     tag::{Tag, TagType},
     TypeParse,
 };
-
-#[derive(Debug)]
-pub struct LwwValue<T> {
-    timestamp: CrdtId,
-    value: T,
-}
 
 #[derive(Debug)]
 /// Text paragraph style.
