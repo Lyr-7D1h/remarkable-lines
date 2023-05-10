@@ -1,4 +1,4 @@
-use crate::{bitreader::Readable, ParseError};
+use crate::{bitreader::Readable, Bitreader, ParseError};
 
 use super::TypeParse;
 
@@ -35,6 +35,17 @@ pub struct Tag {
 }
 
 impl Tag {
+    pub fn has_tag(
+        reader: &mut Bitreader<impl Readable>,
+        tag_type: TagType,
+        tag_index: u32,
+    ) -> Result<bool, crate::ParseError> {
+        let pos = reader.position();
+        let has_tag = Tag::parse(reader)?.validate(tag_type, tag_index).is_ok();
+        reader.set_position(pos);
+        return Ok(has_tag);
+    }
+
     /// Helper function to easily generate errors and to validate
     pub fn validate(&self, tag_type: TagType, index: u32) -> Result<(), ParseError> {
         if self.tag_type != tag_type {

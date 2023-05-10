@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format, io::Read};
+use std::collections::HashMap;
 
 use crate::{
     bitreader::Readable,
@@ -138,7 +138,6 @@ pub struct SceneTreeBlock {
     is_update: bool,
     parent_id: CrdtId,
 }
-
 impl BlockParse for SceneTreeBlock {
     fn parse(
         _info: &BlockInfo,
@@ -192,5 +191,41 @@ impl BlockParse for RootTextBlock {
             block_id,
             text: Text::parse(reader)?,
         })
+    }
+}
+
+// pub struct SceneItemBlock {}
+// impl BlockParse for SceneItemBlock {
+//     fn parse(
+//         info: &BlockInfo,
+//         reader: &mut crate::Bitreader<impl Readable>,
+//     ) -> Result<Self, ParseError> {
+//         Tag::parse(reader)?.validate(TagType::ID, 1)?;
+//         let id = CrdtId::parse(reader)?;
+//         Tag::parse(reader)?.validate(TagType::ID, 2)?;
+//         let item_id = CrdtId::parse(reader)?;
+//         Tag::parse(reader)?.validate(TagType::ID, 3)?;
+//         let left_id = CrdtId::parse(reader)?;
+//         Tag::parse(reader)?.validate(TagType::ID, 4)?;
+//         let right_id = CrdtId::parse(reader)?;
+//         Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
+//         let deleted_length = CrdtId::parse(reader)?;
+//     }
+// }
+
+#[derive(Debug)]
+pub struct SceneGroupItemBlock {
+    id: CrdtId,
+}
+impl BlockParse for SceneGroupItemBlock {
+    fn parse(
+        _info: &BlockInfo,
+        reader: &mut crate::Bitreader<impl Readable>,
+    ) -> Result<Self, ParseError> {
+        // XXX don't know what this means
+        Tag::parse(reader)?.validate(TagType::ID, 1)?;
+        let id = CrdtId::parse(reader)?;
+
+        Ok(Self { id })
     }
 }

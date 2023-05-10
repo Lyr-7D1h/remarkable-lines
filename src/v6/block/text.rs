@@ -85,8 +85,8 @@ impl TypeParse for Text {
                 Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
                 let deleted_length = reader.read_u32();
 
-                let pos = reader.position();
-                if let Ok(_) = Tag::parse(reader)?.validate(TagType::Length4, 6) {
+                if Tag::has_tag(reader, TagType::Length4, 6)? {
+                    Tag::parse(reader)?.validate(TagType::Length4, 6)?;
                     let _length = reader.read_u32()?;
 
                     let string_length = reader.read_varuint()?;
@@ -95,17 +95,15 @@ impl TypeParse for Text {
                     let string = reader.read_string(string_length as usize)?;
 
                     // if tag exists use format
-                    let pos = reader.position();
-                    if let Ok(_) = Tag::parse(reader)?.validate(TagType::Byte4, 2) {
+                    if Tag::has_tag(reader, TagType::Byte4, 2)? {
+                        Tag::parse(reader)?.validate(TagType::Byte4, 2)?;
                         let fmt_code = reader.read_u32()?;
                         return Ok(TextItem::FormatCode(fmt_code));
                     }
-                    reader.set_position(pos); // reset
 
                     return Ok(TextItem::Text(string));
                 }
 
-                reader.set_position(pos);
                 return Ok(TextItem::Text(String::new()));
             })
             .collect::<Result<Vec<TextItem>, ParseError>>()?;
