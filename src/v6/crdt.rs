@@ -8,21 +8,21 @@ pub struct CrdtId {
     part2: u32,
 }
 
-impl Default for CrdtId {
-    fn default() -> Self {
-        Self {
-            part1: Default::default(),
-            part2: Default::default(),
-        }
-    }
-}
-
 impl TypeParse for CrdtId {
     fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, crate::ParseError> {
         Ok(CrdtId {
             part1: reader.read_u8()?, // XXX might be var unit
             part2: reader.read_varuint()?,
         })
+    }
+}
+
+impl Default for CrdtId {
+    fn default() -> Self {
+        Self {
+            part1: Default::default(),
+            part2: Default::default(),
+        }
     }
 }
 

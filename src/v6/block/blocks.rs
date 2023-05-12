@@ -194,24 +194,24 @@ impl BlockParse for RootTextBlock {
     }
 }
 
-// pub struct SceneItemBlock {}
-// impl BlockParse for SceneItemBlock {
-//     fn parse(
-//         info: &BlockInfo,
-//         reader: &mut crate::Bitreader<impl Readable>,
-//     ) -> Result<Self, ParseError> {
-//         Tag::parse(reader)?.validate(TagType::ID, 1)?;
-//         let id = CrdtId::parse(reader)?;
-//         Tag::parse(reader)?.validate(TagType::ID, 2)?;
-//         let item_id = CrdtId::parse(reader)?;
-//         Tag::parse(reader)?.validate(TagType::ID, 3)?;
-//         let left_id = CrdtId::parse(reader)?;
-//         Tag::parse(reader)?.validate(TagType::ID, 4)?;
-//         let right_id = CrdtId::parse(reader)?;
-//         Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
-//         let deleted_length = CrdtId::parse(reader)?;
-//     }
-// }
+pub struct SceneItemBlock {}
+impl BlockParse for SceneItemBlock {
+    fn parse(
+        info: &BlockInfo,
+        reader: &mut crate::Bitreader<impl Readable>,
+    ) -> Result<Self, ParseError> {
+        Tag::parse(reader)?.validate(TagType::ID, 1)?;
+        let id = CrdtId::parse(reader)?;
+        Tag::parse(reader)?.validate(TagType::ID, 2)?;
+        let item_id = CrdtId::parse(reader)?;
+        Tag::parse(reader)?.validate(TagType::ID, 3)?;
+        let left_id = CrdtId::parse(reader)?;
+        Tag::parse(reader)?.validate(TagType::ID, 4)?;
+        let right_id = CrdtId::parse(reader)?;
+        Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
+        let deleted_length = CrdtId::parse(reader)?;
+    }
+}
 
 #[derive(Debug)]
 pub struct SceneGroupItemBlock {

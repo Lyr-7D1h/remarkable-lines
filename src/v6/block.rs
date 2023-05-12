@@ -37,12 +37,6 @@ pub enum Block {
     RootText(RootTextBlock),
 }
 
-/// Simplified parsing method only accepting reader
-pub trait TypeParse {
-    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, ParseError>
-    where
-        Self: Sized;
-}
 /// Parsing methods for parsing blocks
 pub trait BlockParse {
     fn parse(
