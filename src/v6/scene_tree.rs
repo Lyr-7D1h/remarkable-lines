@@ -7,8 +7,10 @@ use crate::{
     Bitreader, Parse, ParseError,
 };
 
+use super::{crdt::CrdtId, group::Group, text::Text};
+
 struct Node {
-    id: String,
+    id: CrdtId,
     children: Vec<Node>,
     is_layer: bool,
     layer: i32,
@@ -16,12 +18,59 @@ struct Node {
 }
 
 pub struct SceneTree {
-    nodes: HashMap<String, Node>,
-    root: Node,
+    nodes: HashMap<CrdtId, Group>,
+    root: Group,
+    root_text: Option<Text>,
 }
 
 impl SceneTree {
-    pub fn build_tree(blocks: Vec<Block>) -> Result<SceneTree, ParseError> {
+    pub fn add_node(&mut self, id: CrdtId) {
+        let mut group = Group::default();
+        group.node_id = id;
+        self.nodes.insert(id, group);
+    }
+
+    pub fn new() -> SceneTree {
+        let mut root = Group::default();
+        root.node_id = CrdtId { part1: 0, part2: 1 };
+        SceneTree {
+            root,
+            nodes: HashMap::new(),
+            root_text: None,
+        }
+    }
+
+    pub fn from_blocks(blocks: Vec<Block>) -> Result<SceneTree, ParseError> {
+        let mut tree = SceneTree::new();
+        for block in blocks.into_iter() {
+            match block {
+                Block::SceneTree(b) => {
+                    // XXX check node_id and is_update
+                    // pending_tree_nodes[b.tree_id] = b
+                    tree.add_node(b.tree_id)
+                }
+                Block::TreeNode(b) => {
+                    let node = match tree.nodes.get_mut(&b.group.node_id) {
+                        Some(node) => node,
+                        None => {
+                            return Err(ParseError::invalid(format!(
+                                "Node does not exist for TreeNodeBlock: {:?}",
+                                b.group.node_id
+                            )));
+                        }
+                    };
+                    *node = Group {
+                        children: node.children,
+                        ..b.group
+                    };
+                }
+                Block::SceneGroupItem(_) => todo!(),
+                Block::SceneGlyphItem | Block::SceneLineItem => todo!(),
+                Block::RootText(_) => todo!(),
+                _ => (),
+            }
+        }
+
         todo!()
     }
 }
@@ -41,6 +90,6 @@ impl Parse for SceneTree {
             blocks.push(Block::parse(&mut tagged_bit_reader)?);
         }
 
-        Self::build_tree(blocks)
+        Self::from_blocks(blocks)
     }
 }

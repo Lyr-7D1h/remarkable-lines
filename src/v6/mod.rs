@@ -1,8 +1,10 @@
 mod crdt;
+mod group;
 mod lwwvalue;
 mod scene_tree;
 mod subblock;
 mod tagged_bit_reader;
+mod text;
 
 pub use scene_tree::SceneTree;
 

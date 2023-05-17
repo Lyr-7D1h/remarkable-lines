@@ -41,14 +41,6 @@ impl TryFrom<u8> for ParagraphStyle {
     }
 }
 
-// pub struct TextItem<T> {
-//     item_id: CrdtId,
-//     left_id: CrdtId,
-//     right_id: CrdtId,
-//     deleted_length: u32,
-//     value: T,
-// }
-
 #[derive(Debug)]
 pub enum TextItem {
     FormatCode(u32),

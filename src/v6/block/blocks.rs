@@ -1,21 +1,22 @@
-use std::{collections::HashMap, io::Read};
+use std::collections::HashMap;
 
 use crate::{
     bitreader::Readable,
     v6::{
         block::TypeParse,
         crdt::{CrdtId, CrdtSequenceItem},
+        group::Group,
         tagged_bit_reader::TaggedBitreader,
     },
     ParseError,
 };
 
-use super::{group::Group, text::Text, BlockInfo, BlockParse};
+use super::{text::Text, BlockInfo, BlockParse};
 
 #[derive(Debug)]
 pub struct MigrationInfoBlock {
-    migration_id: CrdtId,
-    is_device: bool,
+    pub migration_id: CrdtId,
+    pub is_device: bool,
 }
 impl BlockParse for MigrationInfoBlock {
     fn parse(
@@ -38,7 +39,7 @@ impl BlockParse for MigrationInfoBlock {
 
 #[derive(Debug)]
 pub struct AuthorsIdsBlock {
-    authors: HashMap<u16, String>,
+    pub authors: HashMap<u16, String>,
 }
 impl BlockParse for AuthorsIdsBlock {
     fn parse(
@@ -64,10 +65,10 @@ impl BlockParse for AuthorsIdsBlock {
 
 #[derive(Debug)]
 pub struct PageInfoBlock {
-    loads_count: u32,
-    merges_count: u32,
-    text_chars_count: u32,
-    text_lines_count: u32,
+    pub loads_count: u32,
+    pub merges_count: u32,
+    pub text_chars_count: u32,
+    pub text_lines_count: u32,
 }
 impl BlockParse for PageInfoBlock {
     fn parse(
@@ -94,7 +95,7 @@ impl BlockParse for PageInfoBlock {
 
 #[derive(Debug)]
 pub struct TreeNodeBlock {
-    group: Group,
+    pub group: Group,
 }
 impl BlockParse for TreeNodeBlock {
     fn parse(
@@ -119,10 +120,10 @@ impl BlockParse for TreeNodeBlock {
 
 #[derive(Debug)]
 pub struct SceneTreeBlock {
-    tree_id: CrdtId,
-    node_id: CrdtId,
-    is_update: bool,
-    parent_id: CrdtId,
+    pub tree_id: CrdtId,
+    pub node_id: CrdtId,
+    pub is_update: bool,
+    pub parent_id: CrdtId,
 }
 impl BlockParse for SceneTreeBlock {
     fn parse(
@@ -158,8 +159,8 @@ impl BlockParse for SceneGlyphItem {
 
 #[derive(Debug)]
 pub struct RootTextBlock {
-    block_id: CrdtId,
-    text: Text,
+    pub block_id: CrdtId,
+    pub text: Text,
 }
 impl BlockParse for RootTextBlock {
     fn parse(
@@ -211,8 +212,8 @@ impl TryFrom<u8> for SceneItemType {
 }
 #[derive(Debug)]
 pub struct SceneItem<N> {
-    parent_id: CrdtId,
-    item: CrdtSequenceItem<Option<N>>,
+    pub parent_id: CrdtId,
+    pub item: CrdtSequenceItem<Option<N>>,
 }
 impl<N> SceneItem<N> {
     fn parse<R: Readable>(
@@ -252,7 +253,7 @@ impl<N> SceneItem<N> {
 #[derive(Debug)]
 pub struct SceneGroupItemBlock {
     // XXX don't know what this means
-    scene_item_block: SceneItem<CrdtId>,
+    pub scene_item_block: SceneItem<CrdtId>,
 }
 impl BlockParse for SceneGroupItemBlock {
     fn parse(
