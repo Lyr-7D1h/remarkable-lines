@@ -1,6 +1,6 @@
 use crate::bitreader::Readable;
 
-use super::TypeParse;
+use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct CrdtId {
@@ -9,10 +9,10 @@ pub struct CrdtId {
 }
 
 impl TypeParse for CrdtId {
-    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, crate::ParseError> {
+    fn parse(reader: &mut TaggedBitreader<impl Readable>) -> Result<Self, crate::ParseError> {
         Ok(CrdtId {
-            part1: reader.read_u8()?, // XXX might be var unit
-            part2: reader.read_varuint()?,
+            part1: reader.bit_reader.read_u8()?, // XXX might be var unit
+            part2: reader.bit_reader.read_varuint()?,
         })
     }
 }

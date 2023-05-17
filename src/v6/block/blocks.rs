@@ -2,17 +2,11 @@ use std::collections::HashMap;
 
 use crate::{
     bitreader::Readable,
-    v6::block::{
-        tag::{Tag, TagType},
-        TypeParse,
-    },
+    v6::{block::TypeParse, crdt::CrdtId, tagged_bit_reader::TaggedBitreader},
     ParseError,
 };
 
-use super::{
-    crdt::CrdtId, group::Group, lwwvalue::LwwValue, subblock::SubBlock, text::Text, BlockInfo,
-    BlockParse,
-};
+use super::{group::Group, text::Text, BlockInfo, BlockParse};
 
 #[derive(Debug)]
 pub struct MigrationInfoBlock {
@@ -22,16 +16,14 @@ pub struct MigrationInfoBlock {
 impl BlockParse for MigrationInfoBlock {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let migration_id = CrdtId::parse(reader)?;
+        let migration_id = reader.read_id(1)?;
 
-        Tag::parse(reader)?.validate(TagType::Byte1, 2)?;
-        let is_device = reader.read_u8()? > 0;
+        let is_device = reader.read_u8(2)? > 0;
 
-        if info.has_bytes_remaining(reader) {
-            _ = reader.read_u8();
+        if info.has_bytes_remaining(&mut reader.bit_reader) {
+            _ = reader.bit_reader.read_u8();
         }
         Ok(Self {
             migration_id,
@@ -47,20 +39,19 @@ pub struct AuthorsIdsBlock {
 impl BlockParse for AuthorsIdsBlock {
     fn parse(
         _info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        let amount_subblocks = reader.read_varuint()?;
+        let amount_subblocks = reader.bit_reader.read_varuint()?;
         let mut authors = HashMap::new();
 
         for _ in 0..amount_subblocks {
-            Tag::parse(reader)?.validate(TagType::Length4, 0)?;
+            let block = reader.read_subblock(0)?;
 
-            let _subblock_length = reader.read_u32()?;
+            let uuid = reader.bit_reader.read_uuid()?;
 
-            let uuid = reader.read_uuid()?;
-
-            let author_id = reader.read_u16()?;
+            let author_id = reader.bit_reader.read_u16()?;
             authors.insert(author_id, uuid);
+            block.validate_size(reader);
         }
 
         Ok(Self { authors })
@@ -77,23 +68,15 @@ pub struct PageInfoBlock {
 impl BlockParse for PageInfoBlock {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        Tag::parse(reader)?.validate(TagType::Byte4, 1)?;
-        let loads_count = reader.read_u32()?;
+        let loads_count = reader.read_u32(1)?;
+        let merges_count = reader.read_u32(2)?;
+        let text_chars_count = reader.read_u32(3)?;
+        let text_lines_count = reader.read_u32(4)?;
 
-        Tag::parse(reader)?.validate(TagType::Byte4, 2)?;
-        let merges_count = reader.read_u32()?;
-
-        Tag::parse(reader)?.validate(TagType::Byte4, 3)?;
-        let text_chars_count = reader.read_u32()?;
-
-        Tag::parse(reader)?.validate(TagType::Byte4, 4)?;
-        let text_lines_count = reader.read_u32()?;
-
-        if info.has_bytes_remaining(reader) {
-            let _unknown = Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
-            reader.read_u32()?;
+        if info.has_bytes_remaining(&mut reader.bit_reader) {
+            reader.read_u32(5)?;
         }
 
         Ok(Self {
@@ -112,19 +95,18 @@ pub struct TreeNodeBlock {
 impl BlockParse for TreeNodeBlock {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         let mut group = Group::default();
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        group.node_id = CrdtId::parse(reader)?;
-        group.label = LwwValue::<String>::read_lww_string(reader, 2)?;
-        group.visible = LwwValue::<bool>::read_lww_bool(reader, 3)?;
+        group.node_id = reader.read_id(1)?;
+        group.label = reader.read_lww_string(2)?;
+        group.visible = reader.read_lww_bool(3)?;
 
-        if info.has_bytes_remaining(reader) {
-            group.anchor_id = Some(LwwValue::<CrdtId>::read_lww_id(reader, 7)?);
-            group.anchor_type = Some(LwwValue::<u8>::read_u8(reader, 8)?);
-            group.anchor_threshold = Some(LwwValue::<f32>::read_lww_float(reader, 9)?);
-            group.anchor_origin_x = Some(LwwValue::<f32>::read_lww_float(reader, 10)?);
+        if info.has_bytes_remaining(&reader.bit_reader) {
+            group.anchor_id = Some(reader.read_lww_id(7)?);
+            group.anchor_type = Some(reader.read_lww_u8(8)?);
+            group.anchor_threshold = Some(reader.read_lww_f32(9)?);
+            group.anchor_origin_x = Some(reader.read_lww_f32(10)?);
         }
 
         Ok(Self { group })
@@ -141,18 +123,14 @@ pub struct SceneTreeBlock {
 impl BlockParse for SceneTreeBlock {
     fn parse(
         _info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let tree_id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::ID, 2)?;
-        let node_id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::Byte1, 3)?;
-        let is_update = reader.read_bool()?;
+        let tree_id = reader.read_id(1)?;
+        let node_id = reader.read_id(2)?;
+        let is_update = reader.read_bool(3)?;
 
-        let subblock = SubBlock::parse(reader)?.validate_tag(4)?;
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let parent_id = CrdtId::parse(reader)?;
+        let subblock = reader.read_subblock(4)?;
+        let parent_id = reader.read_id(1)?;
         subblock.validate_size(reader)?;
 
         Ok(Self {
@@ -168,7 +146,7 @@ pub struct SceneGlyphItem {}
 impl BlockParse for SceneGlyphItem {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         Ok(Self {})
     }
@@ -182,10 +160,9 @@ pub struct RootTextBlock {
 impl BlockParse for RootTextBlock {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let block_id = CrdtId::parse(reader)?;
+        let block_id = reader.read_id(1)?;
 
         Ok(RootTextBlock {
             block_id,
@@ -194,24 +171,19 @@ impl BlockParse for RootTextBlock {
     }
 }
 
-pub struct SceneItemBlock {}
-impl BlockParse for SceneItemBlock {
-    fn parse(
-        info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
-    ) -> Result<Self, ParseError> {
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::ID, 2)?;
-        let item_id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::ID, 3)?;
-        let left_id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::ID, 4)?;
-        let right_id = CrdtId::parse(reader)?;
-        Tag::parse(reader)?.validate(TagType::Byte4, 5)?;
-        let deleted_length = CrdtId::parse(reader)?;
-    }
-}
+// pub struct SceneItemBlock {}
+// impl BlockParse for SceneItemBlock {
+//     fn parse(
+//         info: &BlockInfo,
+//         reader: &mut TaggedBitreader<impl Readable>,
+//     ) -> Result<Self, ParseError> {
+//         let id = reader.read_id(1)?;
+//         let item_id = reader.read_id(2)?;
+//         let left_id = reader.read_id(3)?;
+//         let right_id = reader.read_id(4)?;
+//         let deleted_length = reader.read_id(5)?;
+//     }
+// }
 
 #[derive(Debug)]
 pub struct SceneGroupItemBlock {
@@ -220,11 +192,10 @@ pub struct SceneGroupItemBlock {
 impl BlockParse for SceneGroupItemBlock {
     fn parse(
         _info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         // XXX don't know what this means
-        Tag::parse(reader)?.validate(TagType::ID, 1)?;
-        let id = CrdtId::parse(reader)?;
+        let id = reader.read_id(1)?;
 
         Ok(Self { id })
     }

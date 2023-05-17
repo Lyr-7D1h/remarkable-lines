@@ -1,13 +1,11 @@
 use crate::{bitreader::Readable, Bitreader, ParseError};
 
 mod blocks;
-mod crdt;
 mod group;
-mod lwwvalue;
-mod subblock;
-mod tag;
 mod text;
 use blocks::*;
+
+use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
 
 #[derive(Debug)]
 pub struct BlockInfo {
@@ -41,20 +39,21 @@ pub enum Block {
 pub trait BlockParse {
     fn parse(
         info: &BlockInfo,
-        reader: &mut crate::Bitreader<impl Readable>,
+        reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError>
     where
         Self: Sized;
 }
 
 impl TypeParse for Block {
-    fn parse(reader: &mut crate::Bitreader<impl Readable>) -> Result<Self, ParseError> {
-        let size = reader.read_u32()?;
+    fn parse(reader: &mut TaggedBitreader<impl Readable>) -> Result<Self, ParseError> {
+        let size = reader.bit_reader.read_u32()?;
+
         // unknown value
-        let _ = reader.read_u8()?;
-        let min_version = reader.read_u8()?;
-        let current_version = reader.read_u8()?;
-        let block_type = reader.read_u8()?;
+        let _ = reader.bit_reader.read_u8()?;
+        let min_version = reader.bit_reader.read_u8()?;
+        let current_version = reader.bit_reader.read_u8()?;
+        let block_type = reader.bit_reader.read_u8()?;
 
         if current_version < min_version {
             return Err(ParseError::invalid(
@@ -62,11 +61,11 @@ impl TypeParse for Block {
             ));
         }
 
-        let start_offset = reader.position();
+        let start_offset = reader.bit_reader.position();
 
         println!(
             "\nStarting new block at offset {:x} until {:x}",
-            reader.position() - 4,
+            reader.bit_reader.position() - 4,
             start_offset + size as u64
         );
 
@@ -96,7 +95,7 @@ impl TypeParse for Block {
         };
 
         let expected_offset = start_offset + size as u64;
-        let end_offset = reader.position();
+        let end_offset = reader.bit_reader.position();
         if expected_offset != end_offset {
             return Err(ParseError::invalid(format!(
                 "Block type '{block_type}' did not read expected size. got {end_offset:x} expected {expected_offset:x}" 

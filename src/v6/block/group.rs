@@ -1,4 +1,4 @@
-use super::{
+use crate::v6::{
     crdt::{CrdtId, CrdtSequence},
     lwwvalue::LwwValue,
 };
