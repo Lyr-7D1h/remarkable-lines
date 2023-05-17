@@ -182,7 +182,7 @@ impl<'n, N: Readable> TaggedBitreader<'n, N> {
 
         let subblock2 = self.read_subblock(2)?;
         let length = self.bit_reader.read_varuint()?;
-        let is_ascii = self.bit_reader.read_bool()?;
+        let _is_ascii = self.bit_reader.read_bool()?;
         let value = self.bit_reader.read_string(length.try_into()?)?;
         subblock2.validate_size(self)?;
         subblock.validate_size(self)?;

@@ -8,7 +8,7 @@ use crate::bitreader::Readable;
 
 use super::Bitreader;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ParseErrorKind {
     Io,
     InvalidInput,
@@ -17,9 +17,9 @@ pub enum ParseErrorKind {
 
 #[derive(Debug)]
 pub struct ParseError {
-    kind: ParseErrorKind,
-    message: String,
-    context: String,
+    pub kind: ParseErrorKind,
+    pub message: String,
+    pub context: String,
 }
 
 impl ParseError {

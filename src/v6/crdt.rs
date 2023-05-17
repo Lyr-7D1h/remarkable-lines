@@ -28,11 +28,11 @@ impl Default for CrdtId {
 
 #[derive(Debug)]
 pub struct CrdtSequenceItem<N> {
-    item_id: CrdtId,
-    left_id: CrdtId,
-    right_id: CrdtId,
-    deleted_length: CrdtId,
-    value: N,
+    pub item_id: CrdtId,
+    pub left_id: CrdtId,
+    pub right_id: CrdtId,
+    pub deleted_length: u32,
+    pub value: N,
 }
 
 #[derive(Debug)]

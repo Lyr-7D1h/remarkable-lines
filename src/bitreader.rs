@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
 
-use crate::ParseError;
+use crate::{ParseError, ParseErrorKind};
 
 pub trait Readable: Read + AsRef<[u8]> {}
 impl<T: Read + AsRef<[u8]>> Readable for T {}
@@ -14,6 +14,24 @@ impl<N: Readable> Bitreader<N> {
     pub fn new(bits: N) -> Bitreader<N> {
         Bitreader {
             cursor: Cursor::new(bits),
+        }
+    }
+
+    /// Is end of file? returns true if not more bytes can be read
+    pub fn eof(&mut self) -> Result<bool, ParseError> {
+        let pos = self.position();
+        match self.read_bytes(1) {
+            Ok(_) => {
+                self.set_position(pos);
+                Ok(true)
+            }
+            Err(e) => {
+                if e.kind == ParseErrorKind::Io {
+                    self.set_position(pos);
+                    return Ok(false);
+                }
+                return Err(e);
+            }
         }
     }
 
