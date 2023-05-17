@@ -26,7 +26,7 @@ pub struct SceneTree {
 impl SceneTree {
     pub fn add_node(&mut self, id: CrdtId) {
         let mut group = Group::default();
-        group.node_id = id;
+        group.node_id = id.clone();
         self.nodes.insert(id, group);
     }
 
@@ -60,7 +60,7 @@ impl SceneTree {
                         }
                     };
                     *node = Group {
-                        children: node.children,
+                        children: node.children.clone(),
                         ..b.group
                     };
                 }

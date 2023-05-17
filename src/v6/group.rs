@@ -3,7 +3,7 @@ use crate::v6::{
     lwwvalue::LwwValue,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SceneItem {
     Group(Group),
 }
@@ -20,7 +20,7 @@ pub enum SceneItem {
 /// for this group. There are two values that seem to be special:
 /// - `0xfffffffffffe` seems to be used for lines right at the top of the page?
 /// - `0xffffffffffff` seems to be used for lines right at the bottom of the page?
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Group {
     pub node_id: CrdtId,
     pub children: CrdtSequence<SceneItem>, // = field(default_factory=CrdtSequence),

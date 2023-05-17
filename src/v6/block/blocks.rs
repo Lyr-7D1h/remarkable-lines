@@ -3,15 +3,16 @@ use std::collections::HashMap;
 use crate::{
     bitreader::Readable,
     v6::{
-        block::TypeParse,
         crdt::{CrdtId, CrdtSequenceItem},
         group::Group,
         tagged_bit_reader::TaggedBitreader,
+        text::Text,
+        TypeParse,
     },
     ParseError,
 };
 
-use super::{text::Text, BlockInfo, BlockParse};
+use super::{BlockInfo, BlockParse};
 
 #[derive(Debug)]
 pub struct MigrationInfoBlock {

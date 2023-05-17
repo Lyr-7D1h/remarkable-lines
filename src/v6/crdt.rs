@@ -2,10 +2,10 @@ use crate::bitreader::Readable;
 
 use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub struct CrdtId {
-    part1: u8,
-    part2: u32,
+    pub part1: u8,
+    pub part2: u32,
 }
 
 impl TypeParse for CrdtId {
@@ -26,7 +26,7 @@ impl Default for CrdtId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CrdtSequenceItem<N> {
     pub item_id: CrdtId,
     pub left_id: CrdtId,
@@ -35,7 +35,7 @@ pub struct CrdtSequenceItem<N> {
     pub value: N,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CrdtSequence<N> {
     items: Vec<CrdtSequenceItem<N>>,
 }
