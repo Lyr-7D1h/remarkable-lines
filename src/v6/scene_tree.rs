@@ -7,7 +7,11 @@ use crate::{
     Bitreader, Parse, ParseError,
 };
 
-use super::{crdt::CrdtId, group::Group, text::Text};
+use super::{
+    crdt::{CrdtId, CrdtSequenceItem},
+    group::{Group, SceneItem},
+    text::Text,
+};
 
 struct Node {
     id: CrdtId,
@@ -28,6 +32,21 @@ impl SceneTree {
         let mut group = Group::default();
         group.node_id = id.clone();
         self.nodes.insert(id, group);
+    }
+
+    pub fn add_item(
+        &mut self,
+        item: CrdtSequenceItem<SceneItem>,
+        parent_id: CrdtId,
+    ) -> Result<(), ParseError> {
+        let parent = self
+            .nodes
+            .get_mut(&parent_id)
+            .ok_or(ParseError::invalid(format!(
+                "Could not find parent: {parent_id:?}"
+            )))?;
+        parent.children.push(item);
+        return Ok(());
     }
 
     pub fn new() -> SceneTree {
@@ -64,7 +83,7 @@ impl SceneTree {
                         ..b.group
                     };
                 }
-                Block::SceneGroupItem(_) => todo!(),
+                // Block::SceneGroupItem(b) => tree.nodes.get,
                 Block::SceneGlyphItem | Block::SceneLineItem => todo!(),
                 Block::RootText(_) => todo!(),
                 _ => (),
