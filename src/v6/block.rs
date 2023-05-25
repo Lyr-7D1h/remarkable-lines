@@ -7,10 +7,10 @@ use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
 
 #[derive(Debug)]
 pub struct BlockInfo {
-    start_offset: u64,
-    size: u32,
-    min_version: u8,
-    current_version: u8,
+    pub start_offset: u64,
+    pub size: u32,
+    pub min_version: u8,
+    pub current_version: u8,
 }
 
 impl BlockInfo {
@@ -25,10 +25,10 @@ pub enum Block {
     PageInfo(PageInfoBlock),
     TreeNode(TreeNodeBlock),
     SceneTree(SceneTreeBlock),
-    SceneGlyphItem,
+    SceneGlyphItem(SceneGlyphItemBlock),
     SceneGroupItem(SceneGroupItemBlock),
-    SceneLineItem,
-    SceneTextItem,
+    SceneLineItem(SceneLineItemBlock),
+    SceneTextItem(SceneTextItem),
     AuthorsIds(AuthorsIdsBlock),
     RootText(RootTextBlock),
 }
@@ -78,10 +78,10 @@ impl TypeParse for Block {
             0x00 => Block::MigrationInfo(MigrationInfoBlock::parse(&info, reader)?),
             0x01 => Block::SceneTree(SceneTreeBlock::parse(&info, reader)?),
             0x02 => Block::TreeNode(TreeNodeBlock::parse(&info, reader)?),
-            0x03 => Block::SceneGlyphItem,
+            0x03 => Block::SceneGlyphItem(SceneGlyphItemBlock::parse(&info, reader)?),
             0x04 => Block::SceneGroupItem(SceneGroupItemBlock::parse(&info, reader)?),
-            0x05 => Block::SceneLineItem,
-            0x06 => Block::SceneTextItem,
+            0x05 => Block::SceneLineItem(SceneLineItemBlock::parse(&info, reader)?),
+            0x06 => Block::SceneTextItem(SceneTextItem::parse(&info, reader)?),
             0x07 => Block::RootText(RootTextBlock::parse(&info, reader)?),
             0x09 => Block::AuthorsIds(AuthorsIdsBlock::parse(&info, reader)?),
             0x0A => Block::PageInfo(PageInfoBlock::parse(&info, reader)?),

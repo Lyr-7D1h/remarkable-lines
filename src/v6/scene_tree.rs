@@ -9,8 +9,7 @@ use crate::{
 
 use super::{
     crdt::{CrdtId, CrdtSequenceItem},
-    group::{Group, SceneItem},
-    text::Text,
+    scene_item::{group::Group, text::Text, SceneItem},
 };
 
 struct Node {
@@ -83,8 +82,40 @@ impl SceneTree {
                         ..b.group
                     };
                 }
-                // Block::SceneGroupItem(b) => tree.nodes.get,
-                Block::SceneGlyphItem | Block::SceneLineItem => todo!(),
+                Block::SceneGroupItem(b) => {
+                    match &b.scene_item_block.item.value {
+                        Some(v) => {
+                            let node = tree.nodes.get(&v).ok_or(ParseError::invalid(format!(
+                                "Node does not exist for ScneGroupItemBlock: {v:?}"
+                            )))?;
+                            let block_item = b.scene_item_block.item;
+                            let item = CrdtSequenceItem {
+                                value: SceneItem::Group(node.clone()),
+                                item_id: block_item.item_id,
+                                left_id: block_item.left_id,
+                                right_id: block_item.right_id,
+                                deleted_length: block_item.deleted_length,
+                            };
+                            tree.add_item(item, b.scene_item_block.parent_id)?;
+                        }
+                        None => {
+                            return Err(ParseError::invalid(format!("No node id found",)));
+                        }
+                    };
+                }
+                // Block::SceneGlyphItem |
+                Block::SceneLineItem(b) => {
+                    let mut block_item = b.scene_item_block.item;
+                    let item = CrdtSequenceItem {
+                        value: SceneItem::Group(),
+                        item_id: block_item.item_id,
+                        left_id: block_item.left_id,
+                        right_id: block_item.right_id,
+                        deleted_length: block_item.deleted_length,
+                    };
+
+                    tree.add_item(b.scene_item_block.item, b.scene_item_block.parent_id);
+                }
                 Block::RootText(_) => todo!(),
                 _ => (),
             }

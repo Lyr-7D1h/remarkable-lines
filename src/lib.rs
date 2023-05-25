@@ -5,6 +5,7 @@ use v6::SceneTree;
 pub mod bitreader;
 pub mod other;
 pub mod parse_error;
+pub mod shared;
 pub mod v6;
 
 pub use crate::parse_error::ParseErrorKind;

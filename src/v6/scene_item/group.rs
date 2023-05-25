@@ -3,10 +3,7 @@ use crate::v6::{
     lwwvalue::LwwValue,
 };
 
-#[derive(Debug, Clone)]
-pub enum SceneItem {
-    Group(Group),
-}
+use super::SceneItem;
 
 /// A Group represents a group of nested items.
 ///

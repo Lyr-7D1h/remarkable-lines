@@ -6,13 +6,12 @@ use crate::{
         crdt::CrdtId,
         lwwvalue::LwwValue,
         tagged_bit_reader::{TagType, TaggedBitreader},
+        TypeParse,
     },
     ParseError,
 };
 
-use super::TypeParse;
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Text paragraph style.
 pub enum ParagraphStyle {
     BASIC,
@@ -41,13 +40,13 @@ impl TryFrom<u8> for ParagraphStyle {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TextItem {
     FormatCode(u32),
     Text(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Block of text
 pub struct Text {
     items: Vec<TextItem>,

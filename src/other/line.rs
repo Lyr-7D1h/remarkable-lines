@@ -1,8 +1,8 @@
 use crate::bitreader::Readable;
+use crate::shared::pen_color::PenColor;
 use crate::Parse;
 use crate::ParseError;
 
-use super::color::Color;
 use super::point::Point;
 use super::tool::Tool;
 
@@ -10,7 +10,7 @@ use super::tool::Tool;
 pub struct Line {
     pub points: Vec<Point>,
     pub tool: Tool,
-    pub color: Color,
+    pub color: PenColor,
     pub brush_size: f32,
 }
 
@@ -20,7 +20,7 @@ impl Parse for Line {
         reader: &mut crate::Bitreader<impl Readable>,
     ) -> Result<Self, crate::ParseError> {
         let tool = Tool::try_from(reader.read_u32()?)?;
-        let color = Color::try_from(reader.read_u32()?)?;
+        let color = PenColor::try_from(reader.read_u32()?)?;
         reader.read_u32()?; // Skip unknown value
         let brush_size = reader.read_f32()?;
         if version >= 5 {

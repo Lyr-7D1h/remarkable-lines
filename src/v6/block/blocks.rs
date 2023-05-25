@@ -4,9 +4,8 @@ use crate::{
     bitreader::Readable,
     v6::{
         crdt::{CrdtId, CrdtSequenceItem},
-        group::Group,
+        scene_item::{group::Group, text::Text},
         tagged_bit_reader::TaggedBitreader,
-        text::Text,
         TypeParse,
     },
     ParseError,
@@ -267,5 +266,52 @@ impl BlockParse for SceneGroupItemBlock {
                 r.read_id(2)
             })?,
         })
+    }
+}
+
+#[derive(Debug)]
+pub struct SceneLineItemBlock {
+    // XXX don't know what this means
+    pub scene_item_block: SceneItem<CrdtId>,
+}
+impl BlockParse for SceneLineItemBlock {
+    fn parse(
+        info: &BlockInfo,
+        reader: &mut TaggedBitreader<impl Readable>,
+    ) -> Result<Self, ParseError> {
+        let scene_item_block = SceneItem::parse(reader, SceneItemType::SceneGroupItemBlock, |r| {
+            // XXX don't know what this means
+            info.current_version;
+
+            r.read_id(2)
+        })?;
+    }
+}
+
+#[derive(Debug)]
+pub struct SceneTextItem {
+    // XXX don't know what this means
+    pub scene_item_block: SceneItem<CrdtId>,
+}
+impl BlockParse for SceneTextItem {
+    fn parse(
+        info: &BlockInfo,
+        reader: &mut TaggedBitreader<impl Readable>,
+    ) -> Result<Self, ParseError> {
+        todo!()
+    }
+}
+
+#[derive(Debug)]
+pub struct SceneGlyphItemBlock {
+    // XXX don't know what this means
+    pub scene_item_block: SceneItem<CrdtId>,
+}
+impl BlockParse for SceneGlyphItemBlock {
+    fn parse(
+        info: &BlockInfo,
+        reader: &mut TaggedBitreader<impl Readable>,
+    ) -> Result<Self, ParseError> {
+        todo!()
     }
 }
