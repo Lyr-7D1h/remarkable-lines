@@ -1,9 +1,13 @@
-use crate::{bitreader::Readable, Bitreader, ParseError};
+use crate::{bitreader::Readable, v6::crdt::CrdtId, Bitreader, ParseError};
 
 mod blocks;
 use blocks::*;
 
-use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
+use super::{
+    scene_item::{glyph_range::GlyphRange, line::Line, text::Text},
+    tagged_bit_reader::TaggedBitreader,
+    TypeParse,
+};
 
 #[derive(Debug)]
 pub struct BlockInfo {
@@ -25,10 +29,10 @@ pub enum Block {
     PageInfo(PageInfoBlock),
     TreeNode(TreeNodeBlock),
     SceneTree(SceneTreeBlock),
-    SceneGlyphItem(SceneGlyphItemBlock),
-    SceneGroupItem(SceneGroupItemBlock),
-    SceneLineItem(SceneLineItemBlock),
-    SceneTextItem(SceneTextItem),
+    SceneGlyphItem(SceneItemBlock<GlyphRange>),
+    SceneGroupItem(SceneItemBlock<CrdtId>),
+    SceneLineItem(SceneItemBlock<Line>),
+    SceneTextItem(SceneItemBlock<Text>),
     AuthorsIds(AuthorsIdsBlock),
     RootText(RootTextBlock),
 }
@@ -78,10 +82,33 @@ impl TypeParse for Block {
             0x00 => Block::MigrationInfo(MigrationInfoBlock::parse(&info, reader)?),
             0x01 => Block::SceneTree(SceneTreeBlock::parse(&info, reader)?),
             0x02 => Block::TreeNode(TreeNodeBlock::parse(&info, reader)?),
-            0x03 => Block::SceneGlyphItem(SceneGlyphItemBlock::parse(&info, reader)?),
-            0x04 => Block::SceneGroupItem(SceneGroupItemBlock::parse(&info, reader)?),
-            0x05 => Block::SceneLineItem(SceneLineItemBlock::parse(&info, reader)?),
-            0x06 => Block::SceneTextItem(SceneTextItem::parse(&info, reader)?),
+            0x03 => Block::SceneGlyphItem(SceneItemBlock::parse(
+                &info,
+                reader,
+                SceneItemType::SceneGlyphItemBlock,
+                |_info, reader| GlyphRange::parse(reader),
+            )?),
+            0x04 => Block::SceneGroupItem(SceneItemBlock::parse(
+                &info,
+                reader,
+                SceneItemType::SceneGroupItemBlock,
+                |info, reader| {
+                    // XXX don't know what this means
+                    reader.read_id(2)
+                },
+            )?),
+            0x05 => Block::SceneLineItem(SceneItemBlock::parse(
+                &info,
+                reader,
+                SceneItemType::SceneLineItemBlock,
+                |info, reader| Line::parse(info, reader),
+            )?),
+            0x06 => Block::SceneTextItem(SceneItemBlock::parse(
+                &info,
+                reader,
+                SceneItemType::SceneTextItemBlock,
+                |_info, reader| Text::parse(reader),
+            )?),
             0x07 => Block::RootText(RootTextBlock::parse(&info, reader)?),
             0x09 => Block::AuthorsIds(AuthorsIdsBlock::parse(&info, reader)?),
             0x0A => Block::PageInfo(PageInfoBlock::parse(&info, reader)?),
@@ -103,3 +130,8 @@ impl TypeParse for Block {
         return Ok(block);
     }
 }
+
+// #[test]
+// fn test_block() {
+
+// }

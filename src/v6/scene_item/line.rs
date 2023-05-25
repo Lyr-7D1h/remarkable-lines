@@ -12,7 +12,7 @@ pub struct Line {
     color: PenColor,
     tool: Tool,
     points: Vec<Point>,
-    thickness_scale: f32,
+    thickness_scale: f64,
     starting_length: f32,
 }
 
@@ -35,7 +35,7 @@ impl BlockParse for Line {
     ) -> Result<Self, crate::ParseError> {
         let tool = Tool::try_from(reader.read_u32(1)?)?;
         let color = PenColor::try_from(reader.read_u32(2)?)?;
-        let thinkness_scale = reader.read_f64(3)?;
+        let thickness_scale = reader.read_f64(3)?;
         let starting_length = reader.read_f32(4)?;
 
         let subblock = reader.read_subblock(5)?;
@@ -50,7 +50,17 @@ impl BlockParse for Line {
             .into_iter()
             .map(|_| Point::parse(info, reader))
             .collect::<Result<Vec<Point>, ParseError>>()?;
+        subblock.validate_size(reader);
 
-        todo!()
+        // XXX unused
+        let _timestamp = reader.read_id(6);
+
+        return Ok(Line {
+            tool,
+            color,
+            thickness_scale,
+            starting_length,
+            points,
+        });
     }
 }

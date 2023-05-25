@@ -126,6 +126,15 @@ impl<'n, N: Readable> TaggedBitreader<'n, N> {
         return self.bit_reader.read_f64();
     }
 
+    pub fn read_string(&mut self, index: u32) -> Result<String, ParseError> {
+        let subblock = self.read_subblock(index)?;
+        let string_length = self.bit_reader.read_varuint()?;
+        let is_ascii = self.bit_reader.read_bool()?;
+        let string = self.bit_reader.read_string(string_length as usize)?;
+        subblock.validate_size(self);
+        return Ok(string);
+    }
+
     pub fn read_tag(&mut self, index: u32, tag_type: TagType) -> Result<Tag, ParseError> {
         let x = self.bit_reader.read_varuint()?;
 

@@ -6,10 +6,10 @@ use crate::v6::block::BlockParse;
 pub struct Point {
     x: f32,
     y: f32,
-    speed: u32,
-    direction: u32,
-    width: u32,
-    pressure: u32,
+    speed: f32,
+    direction: f32,
+    width: f32,
+    pressure: f32,
 }
 
 impl BlockParse for Point {
@@ -20,10 +20,10 @@ impl BlockParse for Point {
         let x = reader.bit_reader.read_f32()?;
         let y = reader.bit_reader.read_f32()?;
         if info.current_version == 1 {
-            let speed = reader.bit_reader.read_f32()? * 4;
-            let direction = 255 * reader.bit_reader.read_f32()? / (PI * 2);
-            let width = u32::try_from(reader.bit_reader.read_f32()? * 4)?;
-            let pressure = reader.bit_reader.read_f32() * 255;
+            let speed = reader.bit_reader.read_f32()? * 4.0;
+            let direction = (255.0 * reader.bit_reader.read_f32()?) / (PI * 2.0);
+            let width = reader.bit_reader.read_f32()? * 4.0;
+            let pressure = reader.bit_reader.read_f32()? * 255.0;
             return Ok(Point {
                 x,
                 y,
@@ -33,10 +33,10 @@ impl BlockParse for Point {
                 pressure,
             });
         } else {
-            let speed = reader.bit_reader.read_u16();
-            let width = reader.bit_reader.read_u16();
-            let direction = reader.bit_reader.read_u8();
-            let pressure = reader.bit_reader.read_u8();
+            let speed = f32::from(reader.bit_reader.read_u16()?);
+            let width = f32::from(reader.bit_reader.read_u16()?);
+            let direction = f32::from(reader.bit_reader.read_u8()?);
+            let pressure = f32::from(reader.bit_reader.read_u8()?);
             return Ok(Point {
                 x,
                 y,
