@@ -23,12 +23,13 @@ impl<N: Readable> Bitreader<N> {
         match self.read_bytes(1) {
             Ok(_) => {
                 self.set_position(pos);
-                Ok(true)
+                Ok(false)
             }
             Err(e) => {
+                // if an io error occurs we assume no more bytes can be read, aka eof
                 if e.kind == ParseErrorKind::Io {
                     self.set_position(pos);
-                    return Ok(false);
+                    return Ok(true);
                 }
                 return Err(e);
             }
@@ -120,7 +121,6 @@ impl<N: Readable> Bitreader<N> {
             return Err(ParseError::invalid("Expected UUID length to be 16 bytes"));
         }
 
-        println!("{} {uuid_length}", self.position());
         let mut uuid_bytes: Vec<u8> = self.read_bytes(uuid_length as usize)?;
 
         // Set first 3 uuid sections to big endianness

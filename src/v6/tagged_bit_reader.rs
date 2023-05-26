@@ -131,7 +131,7 @@ impl<'n, N: Readable> TaggedBitreader<'n, N> {
         let string_length = self.bit_reader.read_varuint()?;
         let is_ascii = self.bit_reader.read_bool()?;
         let string = self.bit_reader.read_string(string_length as usize)?;
-        subblock.validate_size(self);
+        subblock.validate_size(self)?;
         return Ok(string);
     }
 

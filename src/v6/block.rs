@@ -65,11 +65,11 @@ impl TypeParse for Block {
 
         let start_offset = reader.bit_reader.position();
 
-        println!(
-            "\nStarting new block at offset {:x} until {:x}",
-            reader.bit_reader.position() - 4,
-            start_offset + size as u64
-        );
+        // println!(
+        //     "\nStarting new block at offset {:x} until {:x}",
+        //     reader.bit_reader.position() - 4,
+        //     start_offset + size as u64
+        // );
 
         let info = BlockInfo {
             start_offset,

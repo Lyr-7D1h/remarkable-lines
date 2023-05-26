@@ -1,8 +1,15 @@
 [package]
-name = "parser"
-description = "Remarkable Parser"
+name = "remarkable_lines"
+description = "Remarkable Files Parser"
 version = "0.1.0"
+keywords = ["remarkable", "parser"]
+authors = ["Lyr <lyr-7d1h@pm.me>"]
+repository = "https://github.com/rust-lang/cargo/"
+
+license = "MIT"
+license-file = "LICENSE"
+
 edition = "2021"
+rust-version="1.71"
 
 [dependencies]
-num = "0.4.0"

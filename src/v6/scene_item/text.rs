@@ -129,8 +129,6 @@ impl TypeParse for Text {
 
         subblock1.validate_size(reader)?;
 
-        println!("{:x}", reader.bit_reader.position());
-
         // Last section
         // "pos_x" and "pos_y" from ddvk? Gives negative number -- possibly could
         // be bounding box?

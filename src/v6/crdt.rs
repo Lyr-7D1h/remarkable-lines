@@ -4,7 +4,7 @@ use crate::bitreader::Readable;
 
 use super::{tagged_bit_reader::TaggedBitreader, TypeParse};
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub struct CrdtId {
     pub part1: u8,
     pub part2: u32,

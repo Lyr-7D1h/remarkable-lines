@@ -12,6 +12,7 @@ pub use crate::parse_error::ParseErrorKind;
 pub use bitreader::Bitreader;
 pub use parse_error::ParseError;
 
+#[derive(Debug)]
 pub enum RemarkableFile {
     V6 { tree: SceneTree, blocks: Vec<Block> },
     Other { version: u32, pages: Vec<Page> },
@@ -20,7 +21,8 @@ pub enum RemarkableFile {
 impl RemarkableFile {
     pub fn read(input: impl Readable) -> Result<RemarkableFile, ParseError> {
         let mut reader = Bitreader::new(input);
-        return Self::read_impl(&mut reader).map_err(|e| e.with_bitreader(&reader));
+        return Self::read_impl(&mut reader)
+            .map_err(|e| e.with_context_from_bitreader(&mut reader));
     }
 
     fn read_impl(reader: &mut Bitreader<impl Readable>) -> Result<RemarkableFile, ParseError> {
@@ -55,8 +57,6 @@ impl RemarkableFile {
             }
         };
 
-        let amount_pages = if version >= 3 { 1 } else { reader.read_u32()? };
-
         if version == 6 {
             let mut blocks = vec![];
             let mut tagged_bit_reader = TaggedBitreader::new(reader);
@@ -78,6 +78,8 @@ impl RemarkableFile {
                 ParseErrorKind::Unsupported,
             ));
         }
+
+        let amount_pages = if version >= 3 { 1 } else { reader.read_u32()? };
 
         Ok(RemarkableFile::Other {
             version,

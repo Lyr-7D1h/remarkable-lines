@@ -15,9 +15,10 @@ struct Node {
     // value: *SceneTreeNode
 }
 
+#[derive(Debug)]
 pub struct SceneTree {
     nodes: HashMap<CrdtId, Group>,
-    root: Group,
+    root_id: CrdtId,
     root_text: Option<Text>,
 }
 
@@ -26,6 +27,10 @@ impl SceneTree {
         let mut group = Group::default();
         group.node_id = id.clone();
         self.nodes.insert(id, group);
+    }
+
+    pub fn get_node(&mut self, id: &CrdtId) -> Option<&Group> {
+        self.nodes.get(id)
     }
 
     pub fn add_item(
@@ -44,11 +49,14 @@ impl SceneTree {
     }
 
     pub fn new() -> SceneTree {
+        let root_id = CrdtId { part1: 0, part2: 1 };
+        let mut nodes = HashMap::new();
         let mut root = Group::default();
-        root.node_id = CrdtId { part1: 0, part2: 1 };
+        root.node_id = root_id;
+        nodes.insert(root_id, root);
         SceneTree {
-            root,
-            nodes: HashMap::new(),
+            root_id,
+            nodes,
             root_text: None,
         }
     }

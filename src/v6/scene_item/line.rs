@@ -42,7 +42,7 @@ impl BlockParse for Line {
         let point_size = point_serialize_size(info.current_version)?;
         if info.size % point_size != 0 {
             return Err(ParseError::invalid(format!(
-                "Invalid point data size. {} is not multiple of point_size",
+                "Invalid point data size. {} is not multiple of {point_size}",
                 info.size
             )));
         }
@@ -50,7 +50,7 @@ impl BlockParse for Line {
             .into_iter()
             .map(|_| Point::parse(info, reader))
             .collect::<Result<Vec<Point>, ParseError>>()?;
-        subblock.validate_size(reader);
+        subblock.validate_size(reader)?;
 
         // XXX unused
         let _timestamp = reader.read_id(6);

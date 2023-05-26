@@ -1,7 +1,8 @@
 use std::{
     error, fmt, i32,
     io::{self, Read},
-    num, string, u32,
+    num::TryFromIntError,
+    string, u32,
 };
 
 use crate::bitreader::Readable;
@@ -39,12 +40,28 @@ impl ParseError {
         Self::new(message, ParseErrorKind::Unsupported)
     }
 
-    pub fn with_bitreader(mut self, bitreader: &Bitreader<impl Readable>) -> ParseError {
-        self.context = format!(
-            "error occured while parsing at bit position: {:x}",
-            bitreader.position()
-        );
-        self
+    /// Add extra context from the bitreader used to parse something
+    pub fn with_context_from_bitreader(
+        mut self,
+        bitreader: &mut Bitreader<impl Readable>,
+    ) -> ParseError {
+        match bitreader.eof() {
+            Ok(eof) => {
+                if eof {
+                    self.context = String::from("error occured after data has been read.");
+                } else {
+                    self.context = format!(
+                        "error occured while parsing at bit position: {:x}",
+                        bitreader.position()
+                    );
+                }
+                self
+            }
+            Err(e) => Self::invalid(format!(
+                "Failed to read eof of bitreader when trying to add context: {}",
+                e
+            )),
+        }
     }
 }
 
@@ -64,16 +81,16 @@ impl From<io::Error> for ParseError {
         Self::new(format!("Failed to read input: {error}"), ParseErrorKind::Io)
     }
 }
-impl From<num::ParseIntError> for ParseError {
-    fn from(error: num::ParseIntError) -> Self {
-        Self::new(
-            format!("Failed to parse integer: {error}"),
-            ParseErrorKind::InvalidInput,
-        )
-    }
-}
-impl From<num::TryFromIntError> for ParseError {
-    fn from(error: num::TryFromIntError) -> Self {
+// impl From<num::ParseIntError> for ParseError {
+//     fn from(error: num::ParseIntError) -> Self {
+//         Self::new(
+//             format!("Failed to parse integer: {error}"),
+//             ParseErrorKind::InvalidInput,
+//         )
+//     }
+// }
+impl From<TryFromIntError> for ParseError {
+    fn from(error: TryFromIntError) -> Self {
         Self::new(
             format!("Failed to read input: {error}"),
             ParseErrorKind::InvalidInput,
