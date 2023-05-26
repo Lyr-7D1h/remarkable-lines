@@ -4,7 +4,7 @@ use crate::{
     bitreader::Readable,
     v6::{
         crdt::{CrdtId, CrdtSequenceItem},
-        scene_item::{group::Group, line::Line, text::Text},
+        scene_item::{group::Group, text::Text},
         tagged_bit_reader::TaggedBitreader,
         TypeParse,
     },
@@ -56,7 +56,7 @@ impl BlockParse for AuthorsIdsBlock {
 
             let author_id = reader.bit_reader.read_u16()?;
             authors.insert(author_id, uuid);
-            block.validate_size(reader);
+            block.validate_size(reader)?;
         }
 
         Ok(Self { authors })

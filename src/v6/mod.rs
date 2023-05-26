@@ -7,7 +7,7 @@ mod subblock;
 
 mod tagged_bit_reader;
 
-pub use block::{Block, BlockParse};
+pub use block::{blocks, Block, BlockParse};
 pub use scene_tree::SceneTree;
 pub use tagged_bit_reader::TaggedBitreader;
 

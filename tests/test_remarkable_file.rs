@@ -1,6 +1,10 @@
-use std::fs::read;
+#![feature(assert_matches)]
+use std::{assert_matches::assert_matches, collections::HashMap, fs::read};
 
-use parser::RemarkableFile;
+use parser::{
+    v6::{blocks::AuthorsIdsBlock, Block},
+    RemarkableFile,
+};
 
 // #[test]
 // fn test_v5_advent_of_code() {
@@ -78,6 +82,12 @@ fn test_v6_single_page_line() {
     assert!(rm_file.version() == 6);
     match rm_file {
         RemarkableFile::Other { .. } => panic!("invalid version"),
-        RemarkableFile::V6 { tree, blocks } => {}
+        RemarkableFile::V6 { tree, blocks } => {
+            println!("{blocks:?}");
+            let mut authors = HashMap::new();
+            authors.insert(1, String::from("495ba59f-c943-2b5c-b455-3682f6948906"));
+
+            // assert_matches!(&blocks[0], [Block::AuthorsIds(AuthorsIdsBlock { authors })] if matches!())
+        }
     }
 }

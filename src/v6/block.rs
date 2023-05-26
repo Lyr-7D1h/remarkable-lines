@@ -1,6 +1,6 @@
 use crate::{bitreader::Readable, v6::crdt::CrdtId, Bitreader, ParseError};
 
-mod blocks;
+pub mod blocks;
 use blocks::*;
 
 use super::{
