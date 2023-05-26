@@ -1,10 +1,10 @@
 use crate::bitreader::Readable;
 use crate::shared::pen_color::PenColor;
 use crate::shared::tool::Tool;
-use crate::Parse;
 use crate::ParseError;
 
 use super::point::Point;
+use super::Parse;
 
 #[derive(Debug)]
 pub struct Line {

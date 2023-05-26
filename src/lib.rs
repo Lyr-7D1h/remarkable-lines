@@ -1,6 +1,6 @@
 use bitreader::Readable;
-use other::page::Page;
-use v6::SceneTree;
+use other::{Page, Parse};
+use v6::{Block, SceneTree, TaggedBitreader, TypeParse};
 
 pub mod bitreader;
 pub mod other;
@@ -13,14 +13,8 @@ pub use bitreader::Bitreader;
 pub use parse_error::ParseError;
 
 pub enum RemarkableFile {
-    V6 { tree: SceneTree },
+    V6 { tree: SceneTree, blocks: Vec<Block> },
     Other { version: u32, pages: Vec<Page> },
-}
-
-pub trait Parse {
-    fn parse(version: u32, reader: &mut Bitreader<impl Readable>) -> Result<Self, ParseError>
-    where
-        Self: Sized;
 }
 
 impl RemarkableFile {
@@ -64,8 +58,18 @@ impl RemarkableFile {
         let amount_pages = if version >= 3 { 1 } else { reader.read_u32()? };
 
         if version == 6 {
-            let tree = SceneTree::parse(version, reader)?;
-            return Ok(RemarkableFile::V6 { tree });
+            let mut blocks = vec![];
+            let mut tagged_bit_reader = TaggedBitreader::new(reader);
+
+            loop {
+                if tagged_bit_reader.bit_reader.eof()? {
+                    break;
+                }
+                blocks.push(Block::parse(&mut tagged_bit_reader)?);
+            }
+
+            let tree = SceneTree::from_blocks(&blocks)?;
+            return Ok(RemarkableFile::V6 { tree, blocks });
         }
 
         if 3 > version || version > 6 {

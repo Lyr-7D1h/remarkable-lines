@@ -1,4 +1,6 @@
-use crate::{bitreader::Readable, Parse};
+use crate::bitreader::Readable;
+
+use super::Parse;
 
 #[derive(Debug)]
 pub struct Point {

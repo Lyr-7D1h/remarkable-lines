@@ -1,6 +1,6 @@
-use crate::{bitreader::Readable, Parse, ParseError};
+use crate::{bitreader::Readable, ParseError};
 
-use super::line::Line;
+use super::{line::Line, Parse};
 
 #[derive(Debug)]
 pub struct Layer {

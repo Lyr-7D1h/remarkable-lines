@@ -13,7 +13,7 @@ use crate::{
 
 use super::{BlockInfo, BlockParse};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MigrationInfoBlock {
     pub migration_id: CrdtId,
     pub is_device: bool,
@@ -37,7 +37,7 @@ impl BlockParse for MigrationInfoBlock {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AuthorsIdsBlock {
     pub authors: HashMap<u16, String>,
 }
@@ -63,7 +63,7 @@ impl BlockParse for AuthorsIdsBlock {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PageInfoBlock {
     pub loads_count: u32,
     pub merges_count: u32,
@@ -93,7 +93,7 @@ impl BlockParse for PageInfoBlock {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TreeNodeBlock {
     pub group: Group,
 }
@@ -118,7 +118,7 @@ impl BlockParse for TreeNodeBlock {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SceneTreeBlock {
     pub tree_id: CrdtId,
     pub node_id: CrdtId,
@@ -146,18 +146,8 @@ impl BlockParse for SceneTreeBlock {
         })
     }
 }
-#[derive(Debug)]
-pub struct SceneGlyphItem {}
-impl BlockParse for SceneGlyphItem {
-    fn parse(
-        info: &BlockInfo,
-        reader: &mut TaggedBitreader<impl Readable>,
-    ) -> Result<Self, ParseError> {
-        Ok(Self {})
-    }
-}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RootTextBlock {
     pub block_id: CrdtId,
     pub text: Text,
@@ -210,7 +200,7 @@ impl TryFrom<u8> for SceneItemType {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SceneItemBlock<N> {
     pub parent_id: CrdtId,
     pub item: CrdtSequenceItem<Option<N>>,

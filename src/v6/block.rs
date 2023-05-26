@@ -23,7 +23,7 @@ impl BlockInfo {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Block {
     MigrationInfo(MigrationInfoBlock),
     PageInfo(PageInfoBlock),
@@ -130,8 +130,3 @@ impl TypeParse for Block {
         return Ok(block);
     }
 }
-
-// #[test]
-// fn test_block() {
-
-// }

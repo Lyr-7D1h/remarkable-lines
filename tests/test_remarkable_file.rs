@@ -78,6 +78,6 @@ fn test_v6_single_page_line() {
     assert!(rm_file.version() == 6);
     match rm_file {
         RemarkableFile::Other { .. } => panic!("invalid version"),
-        RemarkableFile::V6 { tree } => {}
+        RemarkableFile::V6 { tree, blocks } => {}
     }
 }

@@ -1,11 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{
-    bitreader::Readable,
-    v6::Block,
-    v6::{tagged_bit_reader::TaggedBitreader, TypeParse},
-    Bitreader, Parse, ParseError,
-};
+use crate::{v6::Block, ParseError};
 
 use super::{
     crdt::{CrdtId, CrdtSequenceItem},
@@ -58,9 +53,10 @@ impl SceneTree {
         }
     }
 
-    pub fn from_blocks(blocks: Vec<Block>) -> Result<SceneTree, ParseError> {
+    pub fn from_blocks(blocks: &Vec<Block>) -> Result<SceneTree, ParseError> {
         let mut tree = SceneTree::new();
         for block in blocks.into_iter() {
+            let block = block.clone();
             match block {
                 Block::SceneTree(b) => {
                     // XXX check node_id and is_update
@@ -137,24 +133,5 @@ impl SceneTree {
         }
 
         Ok(tree)
-    }
-}
-
-impl Parse for SceneTree {
-    fn parse(
-        _version: u32,
-        reader: &mut Bitreader<impl Readable>,
-    ) -> Result<Self, crate::ParseError> {
-        let mut blocks = vec![];
-        let mut tagged_bit_reader = TaggedBitreader::new(reader);
-
-        loop {
-            if tagged_bit_reader.bit_reader.eof()? {
-                break;
-            }
-            blocks.push(Block::parse(&mut tagged_bit_reader)?);
-        }
-
-        Self::from_blocks(blocks)
     }
 }
