@@ -1,9 +1,9 @@
-mod block;
-mod crdt;
-mod lwwvalue;
-mod scene_item;
-mod scene_tree;
-mod subblock;
+pub mod block;
+pub mod crdt;
+pub mod lwwvalue;
+pub mod scene_item;
+pub mod scene_tree;
+pub mod subblock;
 
 mod tagged_bit_reader;
 

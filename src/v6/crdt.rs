@@ -43,8 +43,8 @@ pub struct CrdtSequence<N> {
 }
 
 impl<N> CrdtSequence<N> {
-    pub fn new(items: Vec<CrdtSequenceItem<N>>) -> Self {
-        Self::default()
+    pub fn new(items: HashMap<CrdtId, CrdtSequenceItem<N>>) -> Self {
+        Self { items }
     }
 
     pub fn push(&mut self, item: CrdtSequenceItem<N>) -> Option<CrdtSequenceItem<N>> {

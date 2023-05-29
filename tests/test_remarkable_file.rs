@@ -7,6 +7,8 @@ use remarkable_lines::{
             AuthorsIdsBlock, MigrationInfoBlock, PageInfoBlock, RootTextBlock, SceneItemBlock,
             SceneTreeBlock, TreeNodeBlock,
         },
+        crdt::{CrdtId, CrdtSequence},
+        scene_item::text::Text,
         Block,
     },
     RemarkableFile,
@@ -40,17 +42,48 @@ fn test_v6_single_page_line() {
     match rm_file {
         RemarkableFile::Other { .. } => panic!("invalid version"),
         RemarkableFile::V6 { tree, blocks } => {
-            let mut authors = HashMap::new();
-            authors.insert(1, String::from("495ba59f-c943-2b5c-b455-3682f6948906"));
+            let mut authors = vec![(1, "495ba59f-c943-2b5c-b455-3682f6948906".to_owned())]
+                .into_iter()
+                .collect::<HashMap<u16, String>>();
 
             assert_matches!(
                 blocks[..],
                 [
-                    Block::AuthorsIds(AuthorsIdsBlock { .. }),
-                    Block::MigrationInfo(MigrationInfoBlock { .. }),
-                    Block::PageInfo(PageInfoBlock { .. }),
-                    Block::SceneTree(SceneTreeBlock { .. }),
-                    Block::RootText(RootTextBlock { .. }),
+                    Block::AuthorsIds(AuthorsIdsBlock {
+                        // authors: vec![(1, "495ba59f-c943-2b5c-b455-3682f6948906".to_owned())]
+                        //     .into_iter()
+                        //     .collect::<HashMap<u16, String>>()
+                        ..
+                    }),
+                    Block::MigrationInfo(MigrationInfoBlock {
+                        migration_id: CrdtId { part1: 1, part2: 1 },
+                        is_device: true
+                    }),
+                    Block::PageInfo(PageInfoBlock {
+                        loads_count: 1,
+                        merges_count: 0,
+                        text_chars_count: 3,
+                        text_lines_count: 1
+                    }),
+                    Block::SceneTree(SceneTreeBlock {
+                        tree_id: CrdtId {
+                            part1: 0,
+                            part2: 11
+                        },
+                        node_id: CrdtId { part1: 0, part2: 0 },
+                        is_update: true,
+                        parent_id: CrdtId { part1: 0, part2: 1 }
+                    }),
+                    Block::RootText(RootTextBlock {
+                        block_id: CrdtId { part1: 0, part2: 0 },
+                        text: Text {
+                            items: CrdtSequence::new(),
+                            styles,
+                            x: -468.0,
+                            y: 234.0,
+                            width: 936.0
+                        },
+                    }),
                     Block::TreeNode(TreeNodeBlock { .. }),
                     Block::TreeNode(TreeNodeBlock { .. }),
                     Block::SceneGroupItem(SceneItemBlock { .. }),
