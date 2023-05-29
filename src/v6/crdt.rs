@@ -59,3 +59,10 @@ impl<N> Default for CrdtSequence<N> {
         }
     }
 }
+
+impl<N> FromIterator<CrdtSequenceItem<N>> for CrdtSequence<N> {
+    fn from_iter<T: IntoIterator<Item = CrdtSequenceItem<N>>>(iter: T) -> Self {
+        let items = iter.into_iter().map(|i| (i.item_id, i)).collect();
+        Self::new(items)
+    }
+}

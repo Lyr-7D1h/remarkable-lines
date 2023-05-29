@@ -30,6 +30,17 @@ pub struct Group {
     pub anchor_origin_x: Option<LwwValue<f32>>,
 }
 
+impl Group {
+    pub fn node_id(mut self, node_id: CrdtId) -> Self {
+        self.node_id = node_id;
+        self
+    }
+    pub fn label(mut self, label: LwwValue<String>) -> Self {
+        self.label = label;
+        self
+    }
+}
+
 impl Default for Group {
     fn default() -> Self {
         Self {

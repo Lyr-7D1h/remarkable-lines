@@ -1,5 +1,4 @@
-#![feature(assert_matches)]
-use std::{assert_matches::assert_matches, collections::HashMap, fs::read};
+use std::{collections::HashMap, fs::read, hash::Hash};
 
 use remarkable_lines::{
     v6::{
@@ -7,12 +6,20 @@ use remarkable_lines::{
             AuthorsIdsBlock, MigrationInfoBlock, PageInfoBlock, RootTextBlock, SceneItemBlock,
             SceneTreeBlock, TreeNodeBlock,
         },
-        crdt::{CrdtId, CrdtSequence},
-        scene_item::text::Text,
+        crdt::{CrdtId, CrdtSequence, CrdtSequenceItem},
+        lwwvalue::LwwValue,
+        scene_item::{
+            group::Group,
+            text::{ParagraphStyle, Text, TextItem},
+        },
         Block,
     },
     RemarkableFile,
 };
+
+fn vec_to_hashmap<K: Eq + Hash, V>(items: Vec<(K, V)>) -> HashMap<K, V> {
+    return items.into_iter().collect();
+}
 
 #[test]
 fn test_v5_advent_of_code() {
@@ -42,53 +49,98 @@ fn test_v6_single_page_line() {
     match rm_file {
         RemarkableFile::Other { .. } => panic!("invalid version"),
         RemarkableFile::V6 { tree, blocks } => {
-            let mut authors = vec![(1, "495ba59f-c943-2b5c-b455-3682f6948906".to_owned())]
-                .into_iter()
-                .collect::<HashMap<u16, String>>();
-
-            assert_matches!(
-                blocks[..],
-                [
-                    Block::AuthorsIds(AuthorsIdsBlock {
-                        // authors: vec![(1, "495ba59f-c943-2b5c-b455-3682f6948906".to_owned())]
-                        //     .into_iter()
-                        //     .collect::<HashMap<u16, String>>()
-                        ..
-                    }),
-                    Block::MigrationInfo(MigrationInfoBlock {
-                        migration_id: CrdtId { part1: 1, part2: 1 },
-                        is_device: true
-                    }),
-                    Block::PageInfo(PageInfoBlock {
-                        loads_count: 1,
-                        merges_count: 0,
-                        text_chars_count: 3,
-                        text_lines_count: 1
-                    }),
-                    Block::SceneTree(SceneTreeBlock {
-                        tree_id: CrdtId {
+            let expected_blocks = vec![
+                Block::AuthorsIds(AuthorsIdsBlock {
+                    authors: vec_to_hashmap(vec![(
+                        1,
+                        "495ba59f-c943-2b5c-b455-3682f6948906".to_owned(),
+                    )]),
+                }),
+                Block::MigrationInfo(MigrationInfoBlock {
+                    migration_id: CrdtId { part1: 1, part2: 1 },
+                    is_device: true,
+                }),
+                Block::PageInfo(PageInfoBlock {
+                    loads_count: 1,
+                    merges_count: 0,
+                    text_chars_count: 3,
+                    text_lines_count: 1,
+                }),
+                Block::SceneTree(SceneTreeBlock {
+                    tree_id: CrdtId {
+                        part1: 0,
+                        part2: 11,
+                    },
+                    node_id: CrdtId { part1: 0, part2: 0 },
+                    is_update: true,
+                    parent_id: CrdtId { part1: 0, part2: 1 },
+                }),
+                Block::RootText(RootTextBlock {
+                    block_id: CrdtId { part1: 0, part2: 0 },
+                    text: Text {
+                        x: -468.0,
+                        y: 234.0,
+                        width: 936.0,
+                        items: vec![CrdtSequenceItem {
+                            item_id: CrdtId {
+                                part1: 1,
+                                part2: 16,
+                            },
+                            left_id: CrdtId { part1: 0, part2: 0 },
+                            right_id: CrdtId { part1: 0, part2: 0 },
+                            deleted_length: 0,
+                            value: TextItem::Text(String::from("AB")),
+                        }]
+                        .into_iter()
+                        .collect(),
+                        styles: vec_to_hashmap(vec![(
+                            CrdtId { part1: 0, part2: 0 },
+                            LwwValue {
+                                timestamp: CrdtId {
+                                    part1: 1,
+                                    part2: 15,
+                                },
+                                value: ParagraphStyle::PLAIN,
+                            },
+                        )]),
+                    },
+                }),
+                Block::TreeNode(TreeNodeBlock {
+                    group: Group::default().node_id(CrdtId { part1: 0, part2: 1 }),
+                }),
+                Block::TreeNode(TreeNodeBlock {
+                    group: Group::default()
+                        .node_id(CrdtId {
                             part1: 0,
-                            part2: 11
+                            part2: 11,
+                        })
+                        .label(LwwValue {
+                            timestamp: CrdtId {
+                                part1: 0,
+                                part2: 12,
+                            },
+                            value: String::from("Layer 1"),
+                        }),
+                }),
+                Block::SceneGroupItem(SceneItemBlock {
+                    parent_id: CrdtId { part1: 0, part2: 1 },
+                    item: CrdtSequenceItem {
+                        item_id: CrdtId {
+                            part1: 0,
+                            part2: 13,
                         },
-                        node_id: CrdtId { part1: 0, part2: 0 },
-                        is_update: true,
-                        parent_id: CrdtId { part1: 0, part2: 1 }
-                    }),
-                    Block::RootText(RootTextBlock {
-                        block_id: CrdtId { part1: 0, part2: 0 },
-                        text: Text {
-                            items: CrdtSequence::new(),
-                            styles,
-                            x: -468.0,
-                            y: 234.0,
-                            width: 936.0
-                        },
-                    }),
-                    Block::TreeNode(TreeNodeBlock { .. }),
-                    Block::TreeNode(TreeNodeBlock { .. }),
-                    Block::SceneGroupItem(SceneItemBlock { .. }),
-                ]
-            )
+                        left_id: CrdtId { part1: 0, part2: 0 },
+                        right_id: CrdtId { part1: 0, part2: 0 },
+                        deleted_length: 0,
+                        value: Some(CrdtId {
+                            part1: 0,
+                            part2: 11,
+                        }),
+                    },
+                }),
+            ];
+
+            assert_eq!(format!("{blocks:?}"), format!("{expected_blocks:?}"));
         }
     }
 }

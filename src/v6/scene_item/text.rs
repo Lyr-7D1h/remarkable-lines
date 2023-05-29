@@ -3,13 +3,15 @@ use std::collections::HashMap;
 use crate::{
     bitreader::Readable,
     v6::{
-        crdt::CrdtId,
+        crdt::{CrdtId, CrdtSequence, CrdtSequenceItem},
         lwwvalue::LwwValue,
         tagged_bit_reader::{TagType, TaggedBitreader},
         TypeParse,
     },
     ParseError,
 };
+
+use super::SceneItem;
 
 #[derive(Debug, Clone)]
 /// Text paragraph style.
@@ -49,11 +51,11 @@ pub enum TextItem {
 #[derive(Debug, Clone)]
 /// Block of text
 pub struct Text {
-    items: Vec<TextItem>,
-    styles: HashMap<CrdtId, LwwValue<ParagraphStyle>>,
-    x: f64,
-    y: f64,
-    width: f32,
+    pub items: CrdtSequence<TextItem>,
+    pub styles: HashMap<CrdtId, LwwValue<ParagraphStyle>>,
+    pub x: f64,
+    pub y: f64,
+    pub width: f32,
 }
 impl TypeParse for Text {
     fn parse(reader: &mut TaggedBitreader<impl Readable>) -> Result<Self, crate::ParseError> {
@@ -73,27 +75,37 @@ impl TypeParse for Text {
                 let right_id = reader.read_id(4)?;
                 let deleted_length = reader.read_u32(5)?;
 
-                if reader.has_subblock(6)? {
+                let value = if reader.has_subblock(6)? {
                     let subblock = reader.read_subblock(6)?;
 
                     let string_length = reader.bit_reader.read_varuint()?;
                     // XXX might have a different meaning
-                    let is_ascii = reader.bit_reader.read_bool()?;
+                    let _is_ascii = reader.bit_reader.read_bool()?;
                     let string = reader.bit_reader.read_string(string_length as usize)?;
 
                     // if tag exists use format
-                    if reader.has_tag(2, TagType::Byte4)? {
+                    let value = if reader.has_tag(2, TagType::Byte4)? {
                         let fmt_code = reader.read_u32(2)?;
-                        return Ok(TextItem::FormatCode(fmt_code));
-                    }
+                        TextItem::FormatCode(fmt_code)
+                    } else {
+                        TextItem::Text(string)
+                    };
                     subblock.validate_size(reader)?;
-                    return Ok(TextItem::Text(string));
-                }
+                    value
+                } else {
+                    TextItem::Text(String::new())
+                };
                 subblock.validate_size(reader)?;
 
-                return Ok(TextItem::Text(String::new()));
+                return Ok(CrdtSequenceItem {
+                    item_id,
+                    left_id,
+                    right_id,
+                    deleted_length,
+                    value,
+                });
             })
-            .collect::<Result<Vec<TextItem>, ParseError>>()?;
+            .collect::<Result<CrdtSequence<TextItem>, ParseError>>()?;
 
         subblock2.validate_size(reader)?;
         subblock3.validate_size(reader)?;
