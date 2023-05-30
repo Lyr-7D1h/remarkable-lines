@@ -5,10 +5,9 @@ pub mod scene_item;
 pub mod scene_tree;
 pub mod tagged_bit_reader;
 
-use block::Block;
-use tagged_bit_reader::TaggedBitreader;
-
 use crate::{bitreader::Readable, ParseError};
+
+use self::tagged_bit_reader::TaggedBitreader;
 
 /// Simplified parsing method only accepting reader
 pub trait TypeParse {

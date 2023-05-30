@@ -2,17 +2,13 @@ use std::{collections::HashMap, fs::read, hash::Hash};
 
 use remarkable_lines::{
     v6::{
-        blocks::{
-            AuthorsIdsBlock, MigrationInfoBlock, PageInfoBlock, RootTextBlock, SceneItemBlock,
-            SceneTreeBlock, TreeNodeBlock,
-        },
+        block::*,
         crdt::{CrdtId, CrdtSequenceItem},
         lwwvalue::LwwValue,
         scene_item::{
             group::Group,
             text::{ParagraphStyle, Text, TextItem},
         },
-        Block,
     },
     RemarkableFile,
 };

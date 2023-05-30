@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{v6::Block, ParseError};
+use crate::ParseError;
 
 use super::{
+    block::Block,
     crdt::{CrdtId, CrdtSequenceItem},
     scene_item::{group::Group, text::Text, SceneItem},
 };

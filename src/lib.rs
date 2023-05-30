@@ -12,14 +12,14 @@
 //! # Reading a `.rm` file
 //! You can read any remarkble file
 //!
-//! ```rust
+//! ```no_run
 //! use std::{fs::read};
 //! use remarkable_lines::{RemarkableFile};
 //!
 //! pub fn main() {
 //!     let test_file = read("./test.rm").unwrap();
 //!     let rm_file = RemarkableFile::read(&test_file[..]).unwrap();
-//!     println!("{rm_file:?");
+//!     println!("{rm_file:?}");
 //! }
 //! ```
 

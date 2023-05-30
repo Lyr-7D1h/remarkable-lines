@@ -1,7 +1,7 @@
 use crate::{bitreader::Readable, v6::crdt::CrdtId, Bitreader, ParseError};
 
-pub mod blocks;
-use blocks::*;
+mod blocks;
+pub use blocks::*;
 
 use super::{
     scene_item::{glyph_range::GlyphRange, line::Line, text::Text},
