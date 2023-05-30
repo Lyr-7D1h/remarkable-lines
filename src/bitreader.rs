@@ -17,7 +17,7 @@ impl<N: Readable> Bitreader<N> {
         }
     }
 
-    /// Is end of file? returns true if not more bytes can be read
+    /// End Of File, returns true if not more bytes can be read
     pub fn eof(&mut self) -> Result<bool, ParseError> {
         let pos = self.position();
         match self.read_bytes(1) {
