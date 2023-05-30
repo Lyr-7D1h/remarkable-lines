@@ -114,7 +114,7 @@ impl<N: Readable> Bitreader<N> {
     }
 
     /// Parse uuid from data in little endian format
-    /// Using Variant 2 UUID's with mixed endianess (https://en.wikipedia.org/wiki/Universally_unique_identifier#Encoding)
+    /// Using Variant 2 UUID's with mixed endianess <https://en.wikipedia.org/wiki/Universally_unique_identifier#Encoding>
     pub fn read_uuid(&mut self) -> Result<String, ParseError> {
         let uuid_length = self.read_varuint()?;
         if uuid_length != 16 {

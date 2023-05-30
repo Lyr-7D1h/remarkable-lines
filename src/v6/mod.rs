@@ -3,7 +3,6 @@ pub mod crdt;
 pub mod lwwvalue;
 pub mod scene_item;
 pub mod scene_tree;
-pub mod subblock;
 
 mod tagged_bit_reader;
 

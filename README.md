@@ -4,7 +4,7 @@ A mininimal and fast remarkable files parser aiming to support as many versions 
 
 **Current supported versions: V3 - V5**
 
-# Resources
+# Resources used
 File Format:
 - https://plasma.ninja/blog/devices/remarkable/binary/format/2017/12/26/reMarkable-lines-file-format.html
 - https://github.com/ax3l/lines-are-rusty
