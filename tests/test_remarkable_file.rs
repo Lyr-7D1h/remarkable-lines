@@ -6,7 +6,7 @@ use remarkable_lines::{
             AuthorsIdsBlock, MigrationInfoBlock, PageInfoBlock, RootTextBlock, SceneItemBlock,
             SceneTreeBlock, TreeNodeBlock,
         },
-        crdt::{CrdtId, CrdtSequence, CrdtSequenceItem},
+        crdt::{CrdtId, CrdtSequenceItem},
         lwwvalue::LwwValue,
         scene_item::{
             group::Group,
@@ -49,6 +49,7 @@ fn test_v6_single_page_line() {
     match rm_file {
         RemarkableFile::Other { .. } => panic!("invalid version"),
         RemarkableFile::V6 { tree, blocks } => {
+            println!("{tree:?}");
             let expected_blocks = vec![
                 Block::AuthorsIds(AuthorsIdsBlock {
                     authors: vec_to_hashmap(vec![(
