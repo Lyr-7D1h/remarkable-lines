@@ -92,7 +92,7 @@ impl TypeParse for Block {
                 &info,
                 reader,
                 SceneItemType::SceneGroupItemBlock,
-                |info, reader| {
+                |_info, reader| {
                     // XXX don't know what this means
                     reader.read_id(2)
                 },

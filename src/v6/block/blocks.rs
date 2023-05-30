@@ -154,7 +154,7 @@ pub struct RootTextBlock {
 }
 impl BlockParse for RootTextBlock {
     fn parse(
-        info: &BlockInfo,
+        _info: &BlockInfo,
         reader: &mut TaggedBitreader<impl Readable>,
     ) -> Result<Self, ParseError> {
         let block_id = reader.read_id(1)?;

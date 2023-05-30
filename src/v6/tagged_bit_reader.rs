@@ -129,7 +129,7 @@ impl<'n, N: Readable> TaggedBitreader<'n, N> {
     pub fn read_string(&mut self, index: u32) -> Result<String, ParseError> {
         let subblock = self.read_subblock(index)?;
         let string_length = self.bit_reader.read_varuint()?;
-        let is_ascii = self.bit_reader.read_bool()?;
+        let _is_ascii = self.bit_reader.read_bool()?;
         let string = self.bit_reader.read_string(string_length as usize)?;
         subblock.validate_size(self)?;
         return Ok(string);

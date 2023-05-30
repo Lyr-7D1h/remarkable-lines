@@ -11,7 +11,7 @@ use crate::{
     ParseError,
 };
 
-use super::SceneItem;
+
 
 #[derive(Debug, Clone)]
 /// Text paragraph style.

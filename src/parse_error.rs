@@ -1,8 +1,8 @@
 use std::{
-    error, fmt, i32,
-    io::{self, Read},
+    error, fmt,
+    io::{self},
     num::TryFromIntError,
-    string, u32,
+    string,
 };
 
 use crate::bitreader::Readable;
