@@ -4,7 +4,7 @@ description = "Remarkable Files Parser"
 version = "0.1.1"
 keywords = ["remarkable", "parser"]
 authors = ["Lyr <lyr-7d1h@pm.me>"]
-repository = "https://github.com/rust-lang/cargo/"
+repository = "https://github.com/Lyr-7D1h/remarkable-lines"
 
 license = "MIT"
 edition = "2021"
