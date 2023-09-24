@@ -39,7 +39,7 @@ pub struct CrdtSequenceItem<N> {
 
 #[derive(Debug, Clone)]
 pub struct CrdtSequence<N> {
-    items: HashMap<CrdtId, CrdtSequenceItem<N>>,
+    pub items: HashMap<CrdtId, CrdtSequenceItem<N>>,
 }
 
 impl<N> CrdtSequence<N> {
