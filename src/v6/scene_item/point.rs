@@ -4,12 +4,12 @@ use crate::v6::block::BlockParse;
 
 #[derive(Debug, Clone)]
 pub struct Point {
-    x: f32,
-    y: f32,
-    speed: f32,
-    direction: f32,
-    width: f32,
-    pressure: f32,
+    pub x: f32,
+    pub y: f32,
+    pub speed: f32,
+    pub direction: f32,
+    pub width: f32,
+    pub pressure: f32,
 }
 
 impl BlockParse for Point {
