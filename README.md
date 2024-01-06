@@ -2,6 +2,10 @@
  This parser understands and parses the files used by the Remarkable Paper Tablet.
  These files include many things under which is lines, color and text.
 
+> [!WARNING]
+> I have not yet had the time to really test most versions. This is delivered as is. Any PR's are very welcome!
+> I will revisit this project in a later stage.
+
  # Support
  Currently **V3 up to V6** is supported.
  Although some bugs and undefined behavior might occur as this library is not yet widely tested.
