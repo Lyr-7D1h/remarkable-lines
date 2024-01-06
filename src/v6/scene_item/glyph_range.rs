@@ -2,10 +2,10 @@ use crate::{shared::pen_color::PenColor, v6::TypeParse, ParseError};
 
 #[derive(Debug, Clone)]
 struct Rectangle {
-    x: f64,
-    y: f64,
-    w: f64,
-    h: f64,
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
 }
 
 impl TypeParse for Rectangle {
@@ -23,11 +23,11 @@ impl TypeParse for Rectangle {
 
 #[derive(Debug, Clone)]
 pub struct GlyphRange {
-    start: u32,
-    length: u32,
-    text: String,
-    color: PenColor,
-    rectangles: Vec<Rectangle>,
+    pub start: u32,
+    pub length: u32,
+    pub text: String,
+    pub color: PenColor,
+    pub rectangles: Vec<Rectangle>,
 }
 
 impl TypeParse for GlyphRange {

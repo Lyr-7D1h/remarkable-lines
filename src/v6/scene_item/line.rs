@@ -9,11 +9,11 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Line {
-    color: PenColor,
-    tool: Tool,
-    points: Vec<Point>,
-    thickness_scale: f64,
-    starting_length: f32,
+    pub color: PenColor,
+    pub tool: Tool,
+    pub points: Vec<Point>,
+    pub thickness_scale: f64,
+    pub starting_length: f32,
 }
 
 pub fn point_serialize_size(version: u8) -> Result<u32, ParseError> {
