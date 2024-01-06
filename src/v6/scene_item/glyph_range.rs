@@ -1,7 +1,7 @@
 use crate::{shared::pen_color::PenColor, v6::TypeParse, ParseError};
 
 #[derive(Debug, Clone)]
-struct Rectangle {
+pub struct Rectangle {
     pub x: f64,
     pub y: f64,
     pub w: f64,
